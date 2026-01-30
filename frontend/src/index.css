@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Remove default appearance (good) */
+input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+/* IMPORTANT: Hide the icon visually but keep it clickable + stretch it */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0; /* ← changed from display:none */
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%; /* or whatever width your icon area is */
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Optional: make the whole input area look clean */
+input[type="date"] {
+  padding-right: 40px; /* space for your custom icon */
+}
