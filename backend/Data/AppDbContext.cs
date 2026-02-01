@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using backend.Models.auth;
 using backend.Models.ServiceManagement;
 using backend.Models.Operations;
+using backend.Models;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace backend.Data;
 
@@ -33,7 +35,8 @@ public class AppDbContext : DbContext
     public DbSet<CarWashInspectionRecord> CarWashInspectionRecords { get; set; } = null!;
     public DbSet<BatteryInspectionRecord> BatteryInspectionRecords { get; set; } = null!;
     public DbSet<OilInspectionRecord> OilInspectionRecords { get; set; } = null!;
-
+    public DbSet<Designation> Designations { get; set; } = null!;
+    public DbSet<UserDesignation> UserDesignations { get; set; } = null!;
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
@@ -217,5 +220,53 @@ public class AppDbContext : DbContext
                 owned.Property(v => v.TyrePressure).HasColumnName("RearRight_TyrePressure");
             });
         });
+
+        modelBuilder.Entity<Designation>()
+    .HasIndex(d => d.Code)
+    .IsUnique();
+
+modelBuilder.Entity<Designation>()
+    .HasIndex(d => d.Name)
+    .IsUnique();
+
+modelBuilder.Entity<Designation>()
+    .HasOne(d => d.Service)
+    .WithOne(s => s.Designation)
+    .HasForeignKey<Designation>(d => d.ServiceId)
+    .OnDelete(DeleteBehavior.Cascade);  // or Restrict if you prefer
+
+modelBuilder.Entity<UserDesignation>()
+    .HasKey(ud => new { ud.UserId, ud.DesignationId });
+
+modelBuilder.Entity<UserDesignation>()
+    .HasOne(ud => ud.User)
+    .WithMany(u => u.UserDesignations)
+    .HasForeignKey(ud => ud.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+modelBuilder.Entity<UserDesignation>()
+    .HasOne(ud => ud.Designation)
+    .WithMany(d => d.UserDesignations)
+    .HasForeignKey(ud => ud.DesignationId)
+    .OnDelete(DeleteBehavior.Cascade);
+    
+ // Inside OnModelCreating, after all other configurations
+foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+{
+    foreach (var property in entityType.GetProperties())
+    {
+        if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+        {
+            property.SetValueConverter(
+                new ValueConverter<DateTime?, DateTime?>(
+                    v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : null,
+                    v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : null
+                )
+            );
+        }
     }
+}
+    }
+
+    
 }

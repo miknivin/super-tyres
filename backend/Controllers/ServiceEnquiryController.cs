@@ -12,9 +12,7 @@ public class ServiceEnquiryController(AppDbContext context) : ControllerBase
 {
     private readonly AppDbContext _context = context;
 
-    // POST: Create new ServiceEnquiry + selected services + inspection data
-    // POST: Create new ServiceEnquiry + selected services + all inspection data
-    [HttpPost]
+[HttpPost]
 public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEnquiryDto dto)
 {
     // 1. Create main enquiry
@@ -63,6 +61,7 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
     }
     catch (KeyNotFoundException ex)
     {
+        Console.WriteLine(ex.Message);
         return BadRequest(ex.Message);
     }
 

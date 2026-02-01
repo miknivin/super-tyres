@@ -2,11 +2,10 @@
 import { useState } from "react";
 import { Check, ChevronRight, MoreVertical } from "lucide-react";
 import { useSelector } from "react-redux";
-import type { RootState } from "../../../redux/store"; // adjust path if needed
+import type { RootState } from "../../../redux/store";
+import Modal from "../../ui/Modal";
 
-// Import Modal component
-
-// Import ALL service forms
+// Import ALL service forms (for modal editing)
 import TyreInspectionForm from "./TyreInspectionForm";
 import AlignmentServiceForm from "./AlignmentServiceForm";
 import TyreRotationForm from "./TyreRotationForm";
@@ -15,30 +14,29 @@ import CarWashingForm from "./CarWashingForm";
 import PUSOperatorForm from "./PusOperatingForm";
 import BatteryCheckForm from "./BatteryCheckForm";
 import OilCheckForm from "./OilCheckForm";
-import Modal from "../../ui/Modal";
 
-// Service name mapping
+// Service code → display name mapping (matches backend codes)
 const serviceNameMap: Record<string, string> = {
-  "tyre-inspection": "Tyre Inspection",
-  alignment: "Wheel Alignment",
-  "tyre-rotation": "Tyre Rotation",
-  balancing: "Balancing",
-  "car-wash": "Car Wash",
-  "puc-operator": "PUC Test",
-  "battery-check": "Battery Check-up",
-  "oil-check": "Oil Check-up",
+  TYRE_INSPECT: "Tyre Inspection",
+  ALIGNMENT: "Wheel Alignment",
+  TYRE_ROT: "Tyre Rotation",
+  BALANCING: "Balancing",
+  CAR_WASH: "Car Wash",
+  PUC: "PUC Test",
+  BATTERY_CHECK: "Battery Check-up",
+  OIL_CHECK: "Oil Check-up",
 };
 
-// Service ID → Form component mapping (for modal editing)
+// Service code → Form component mapping (for modal editing)
 const serviceFormComponents: Record<string, React.ComponentType> = {
-  "tyre-inspection": TyreInspectionForm,
-  alignment: AlignmentServiceForm,
-  "tyre-rotation": TyreRotationForm,
-  balancing: BalancingForm,
-  "car-wash": CarWashingForm,
-  "puc-operator": PUSOperatorForm,
-  "battery-check": BatteryCheckForm,
-  "oil-check": OilCheckForm,
+  TYRE_INSPECT: TyreInspectionForm,
+  ALIGNMENT: AlignmentServiceForm,
+  TYRE_ROT: TyreRotationForm,
+  BALANCING: BalancingForm,
+  CAR_WASH: CarWashingForm,
+  PUC: PUSOperatorForm,
+  BATTERY_CHECK: BatteryCheckForm,
+  OIL_CHECK: OilCheckForm,
 };
 
 export default function ComplaintSummaryPage() {
@@ -56,94 +54,107 @@ export default function ComplaintSummaryPage() {
     },
   } = useSelector((state: RootState) => state.serviceEnquiry);
 
-  // ── Modal state ───────────────────────────────────────────────
+  // ── Modal state for editing individual services ───────────────────────────
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
-
   const isModalOpen = editServiceId !== null;
   const modalTitle = editServiceId
     ? (serviceNameMap[editServiceId] ?? "Edit Service")
     : "";
-
   const SelectedForm = editServiceId
     ? serviceFormComponents[editServiceId]
     : null;
 
-  // ── Prepare displayed service list ────────────────────────────
-  const selectedServiceList = selectedServices
-    .map((id) => ({
-      id,
-      name: serviceNameMap[id] || id,
-    }))
-    .filter((item) => item.name !== item.id); // optional filter
+  // ── Prepare displayed service list ────────────────────────────────────────
+  const selectedServiceList = selectedServices.map((code) => ({
+    code,
+    name: serviceNameMap[code] || code, // fallback to code if no mapping
+  }));
 
   const totalServices = selectedServiceList.length;
 
-  // ── Collect ALL complaints from every service ─────────────────
-  const allComplaints = [
-    // Tyre Inspection
-    ...(tyreInspection?.selectedComplaints || []),
-    tyreInspection?.customComplaint?.trim() || "",
+  // ── Collect ALL complaints/notes from every service + global notes ────────
+  const allComplaints: string[] = [];
 
-    // Tyre Rotation
-    tyreRotation?.complaint?.trim() || "",
+  // Tyre Inspection
+  if (tyreInspection) {
+    tyreInspection.selectedComplaints.forEach((c) => allComplaints.push(c));
+    if (tyreInspection.customComplaint?.trim()) {
+      allComplaints.push(tyreInspection.customComplaint.trim());
+    }
+  }
 
-    // Alignment
-    alignment?.complaint?.trim() || "",
+  // Tyre Rotation
+  if (tyreRotation?.complaint?.trim()) {
+    allComplaints.push(tyreRotation.complaint.trim());
+  }
 
-    // Car Wash
-    carWashing?.complaint?.trim() || "",
+  // Alignment
+  if (alignment?.complaint?.trim()) {
+    allComplaints.push(alignment.complaint.trim());
+  }
 
-    // PUC / PUS Operator
+  // Car Wash
+  if (carWashing?.complaint?.trim()) {
+    allComplaints.push(carWashing.complaint.trim());
+  }
 
-    // Battery Check
-    batteryCheck?.complaint?.trim() || "",
+  // PUC / PUS Operator (if you have complaint field later)
+  // if (pusOperator?.complaint?.trim()) allComplaints.push(...);
 
-    // Oil Check
-    oilCheckUp?.complaint?.trim() || "",
+  // Battery Check
+  if (batteryCheck?.complaint?.trim()) {
+    allComplaints.push(batteryCheck.complaint.trim());
+  }
 
-    // Global complaint notes (from summary or general field)
-    complaintNotes?.trim() || "",
-  ].filter(Boolean); // remove empty strings
+  // Oil Check
+  if (oilCheckUp?.complaint?.trim()) {
+    allComplaints.push(oilCheckUp.complaint.trim());
+  }
+
+  // Global complaint notes
+  if (complaintNotes?.trim()) {
+    allComplaints.push(complaintNotes.trim());
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-3xl mx-auto">
         {/* Success Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center shadow-lg">
-            <Check size={32} className="text-white" strokeWidth={3} />
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 bg-teal-600 rounded-full flex items-center justify-center shadow-lg">
+            <Check size={40} className="text-white" strokeWidth={3} />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-center text-lg font-semibold text-gray-900 mb-6">
+        <h1 className="text-center text-2xl font-bold text-gray-900 mb-8">
           Complaint Entry Completed
         </h1>
 
         {/* Vehicle & Customer Info */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-xl font-bold text-gray-900">
-              {customer.vehicleNo || "KL 57 M 8478"}
-            </div>
-            <button className="p-1 hover:bg-gray-100 rounded">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">
+              {customer.vehicleNo || "Vehicle Number Not Set"}
+            </h2>
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <MoreVertical size={20} className="text-gray-600" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 Customer Details
               </h3>
               <p className="text-sm text-gray-700 font-medium">
-                {customer.name || "Mirshad"}
+                {customer.name || "Not Set"}
               </p>
-              <p className="text-xs text-gray-500">
-                {customer.phone || "+91 807 812 345"}
+              <p className="text-xs text-gray-500 mt-1">
+                {customer.phone || "Not Set"}
               </p>
-              <p className="text-xs text-gray-500">
-                {customer.odometer || "25,5400 km"}
+              <p className="text-xs text-gray-500 mt-1">
+                Odometer: {customer.odometer ?? "Not Set"} km
               </p>
             </div>
 
@@ -151,96 +162,90 @@ export default function ComplaintSummaryPage() {
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 Service Details
               </h3>
-              <div className="text-xs space-y-1">
+              <div className="text-sm space-y-2 text-gray-700">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Service date</span>
-                  <span className="text-gray-900">
-                    {customer.serviceDate || "12/02/2024"}
+                  <span className="text-gray-600">Service Date</span>
+                  <span>
+                    {customer.serviceDate
+                      ? new Date(customer.serviceDate).toLocaleDateString()
+                      : "Not Set"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Odometer</span>
-                  <span className="text-gray-900">
-                    {customer.odometer || "58,000 km"}
-                  </span>
+                  <span>{customer.odometer ?? "Not Set"} km</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Services & Complaints */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">
+        {/* Services & Complaints Summary */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">
               Entered Services & Complaints
             </h3>
-            <span className="text-xs font-medium text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
-              Total {totalServices} service{totalServices !== 1 ? "s" : ""}{" "}
-              entered
+            <span className="text-xs font-medium text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
+              {totalServices} service{totalServices !== 1 ? "s" : ""} entered
             </span>
           </div>
 
-          <div className="space-y-2">
-            {selectedServiceList.length > 0 ? (
-              selectedServiceList.map((service) => (
+          {/* List of selected services */}
+          {selectedServiceList.length > 0 ? (
+            <div className="space-y-3 mb-8">
+              {selectedServiceList.map((service) => (
                 <div
-                  key={service.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+                  key={service.code}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
                 >
-                  <span className="text-sm text-gray-700">{service.name}</span>
+                  <span className="text-base font-medium text-gray-800">
+                    {service.name}
+                  </span>
                   <button
-                    onClick={() => setEditServiceId(service.id)}
-                    className="p-1 text-gray-400 hover:text-teal-600 transition-colors"
+                    onClick={() => setEditServiceId(service.code)}
+                    className="p-2 text-gray-400 hover:text-teal-600 transition-colors"
                     title={`Edit ${service.name}`}
                   >
                     <ChevronRight
-                      size={18}
+                      size={20}
                       className="text-gray-400 group-hover:text-teal-600"
                     />
                   </button>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500 text-center py-4">
-                No services selected yet
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-6">
+              No services selected yet
+            </p>
+          )}
 
-          {/* All collected complaints */}
-          {allComplaints.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium text-gray-800 mb-2">
+          {/* All collected complaints/notes */}
+          {allComplaints.length > 0 ? (
+            <div className="pt-6 border-t border-gray-200">
+              <h4 className="text-base font-semibold text-gray-900 mb-4">
                 Notes / Complaints
               </h4>
-              <div className="text-sm text-gray-600 space-y-2">
+              <div className="space-y-3">
                 {allComplaints.map((note, idx) => (
-                  <p key={idx} className="bg-gray-50 p-2 rounded">
+                  <p
+                    key={idx}
+                    className="bg-gray-50 p-4 rounded-lg text-gray-700 border border-gray-100"
+                  >
                     {note}
                   </p>
                 ))}
               </div>
             </div>
+          ) : (
+            <div className="pt-6 border-t border-gray-200 text-center text-gray-500">
+              No complaints or notes entered
+            </div>
           )}
         </div>
 
-        {/* Estimated Time */}
-        <div className="mb-8">
-          <div className="bg-teal-100 text-teal-700 rounded-lg px-4 py-3 inline-block">
-            <div className="text-xs mb-1">Estimated Time</div>
-            <div className="text-lg font-bold">1 hour 30 min</div>
-          </div>
-        </div>
-
-        {/* Start Work Button */}
-        <div className="flex justify-center">
-          <button className="px-8 py-3 w-full bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors shadow-md">
-            Start Work
-          </button>
-        </div>
-
-        {/* ── Edit Modal ──────────────────────────────────────────────── */}
+        {/* ── Edit Modal ────────────────────────────────────────────────────── */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setEditServiceId(null)}
@@ -249,7 +254,7 @@ export default function ComplaintSummaryPage() {
           {SelectedForm ? (
             <SelectedForm />
           ) : (
-            <div className="py-8 text-center text-gray-500">
+            <div className="py-12 text-center text-gray-500">
               Form not implemented for this service yet.
             </div>
           )}

@@ -11,24 +11,28 @@ import { Link } from "react-router-dom";
 
 export default function CustomerVehicleForm() {
   const dispatch = useDispatch();
-
   const formData = useSelector(
     (state: RootState) => state.serviceEnquiry.data.customer,
   );
-  const today = new Date().toISOString().split("T")[0];
-  // Track field-specific errors
   const errors = useSelector((state: RootState) => state.serviceEnquiry.errors);
+
+  const today = new Date().toISOString().split("T")[0];
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    dispatch(updateCustomer({ [name]: value }));
 
-    // Clear error for this field when user types
-    if (errors[name]) {
-      // Dispatch an action to clear this error from Redux
-      dispatch(clearError({ field: name }));
+    // For odometer (number), convert string to number or undefined
+    const payloadValue =
+      name === "odometer" ? (value ? Number(value) : undefined) : value;
+
+    dispatch(updateCustomer({ [name]: payloadValue }));
+
+    // Clear error for this field when user types/changes value
+    const errorKey = `customer.${name}`;
+    if (errors[errorKey]) {
+      dispatch(clearError({ field: errorKey }));
     }
   };
 
@@ -58,12 +62,14 @@ export default function CustomerVehicleForm() {
               value={formData.name}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                errors.name ? "border-red-500" : "border-gray-300"
+                errors["customer.name"] ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Enter full name"
             />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            {errors["customer.name"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.name"]}
+              </p>
             )}
           </div>
 
@@ -77,12 +83,14 @@ export default function CustomerVehicleForm() {
               value={formData.phone}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                errors.phone ? "border-red-500" : "border-gray-300"
+                errors["customer.phone"] ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Enter mobile number"
             />
-            {errors.phone && (
-              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+            {errors["customer.phone"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.phone"]}
+              </p>
             )}
           </div>
 
@@ -96,12 +104,16 @@ export default function CustomerVehicleForm() {
               value={formData.address}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                errors.address ? "border-red-500" : "border-gray-300"
+                errors["customer.address"]
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
               placeholder="House name, street, etc."
             />
-            {errors.address && (
-              <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+            {errors["customer.address"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.address"]}
+              </p>
             )}
           </div>
 
@@ -116,14 +128,17 @@ export default function CustomerVehicleForm() {
                 value={formData.city}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                  errors.city ? "border-red-500" : "border-gray-300"
+                  errors["customer.city"] ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="City / Town"
               />
-              {errors.city && (
-                <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+              {errors["customer.city"] && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors["customer.city"]}
+                </p>
               )}
             </div>
+
             <div>
               <label className="block text-sm text-gray-700 mb-1">
                 Pin Code <span className="text-red-500">*</span>
@@ -134,13 +149,17 @@ export default function CustomerVehicleForm() {
                 value={formData.pinCode1}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                  errors.pinCode1 ? "border-red-500" : "border-gray-300"
+                  errors["customer.pinCode1"]
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 placeholder="6-digit pin"
                 maxLength={6}
               />
-              {errors.pinCode1 && (
-                <p className="text-red-500 text-xs mt-1">{errors.pinCode1}</p>
+              {errors["customer.pinCode1"] && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors["customer.pinCode1"]}
+                </p>
               )}
             </div>
           </div>
@@ -163,12 +182,16 @@ export default function CustomerVehicleForm() {
               value={formData.vehicleName}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                errors.vehicleName ? "border-red-500" : "border-gray-300"
+                errors["customer.vehicleName"]
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
               placeholder="e.g. Hyundai Creta SX"
             />
-            {errors.vehicleName && (
-              <p className="text-red-500 text-xs mt-1">{errors.vehicleName}</p>
+            {errors["customer.vehicleName"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.vehicleName"]}
+              </p>
             )}
           </div>
 
@@ -182,12 +205,16 @@ export default function CustomerVehicleForm() {
               value={formData.vehicleNo}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 uppercase ${
-                errors.vehicleNo ? "border-red-500" : "border-gray-300"
+                errors["customer.vehicleNo"]
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
               placeholder="e.g. KL 07 AB 1234"
             />
-            {errors.vehicleNo && (
-              <p className="text-red-500 text-xs mt-1">{errors.vehicleNo}</p>
+            {errors["customer.vehicleNo"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.vehicleNo"]}
+              </p>
             )}
           </div>
 
@@ -196,17 +223,21 @@ export default function CustomerVehicleForm() {
               Odometer Reading (km) <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
+              type="number"
               name="odometer"
-              value={formData.odometer}
+              value={formData.odometer ?? ""}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                errors.odometer ? "border-red-500" : "border-gray-300"
+                errors["customer.odometer"]
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
               placeholder="Current reading"
             />
-            {errors.odometer && (
-              <p className="text-red-500 text-xs mt-1">{errors.odometer}</p>
+            {errors["customer.odometer"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.odometer"]}
+              </p>
             )}
           </div>
 
@@ -219,15 +250,17 @@ export default function CustomerVehicleForm() {
               value={formData.wheel}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white ${
-                errors.wheel ? "border-red-500" : "border-gray-300"
+                errors["customer.wheel"] ? "border-red-500" : "border-gray-300"
               }`}
             >
               <option value="">Select wheel type</option>
               <option value="2-wheeler">2 Wheeler</option>
               <option value="4-wheeler">4 Wheeler</option>
             </select>
-            {errors.wheel && (
-              <p className="text-red-500 text-xs mt-1">{errors.wheel}</p>
+            {errors["customer.wheel"] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors["customer.wheel"]}
+              </p>
             )}
           </div>
 
@@ -241,7 +274,9 @@ export default function CustomerVehicleForm() {
                 value={formData.vehicleType}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white ${
-                  errors.vehicleType ? "border-red-500" : "border-gray-300"
+                  errors["customer.vehicleType"]
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               >
                 <option value="">Select category</option>
@@ -251,12 +286,13 @@ export default function CustomerVehicleForm() {
                 <option value="muv">MUV</option>
                 <option value="others">Others</option>
               </select>
-              {errors.vehicleType && (
+              {errors["customer.vehicleType"] && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.vehicleType}
+                  {errors["customer.vehicleType"]}
                 </p>
               )}
             </div>
+
             <div>
               <label className="block text-sm text-gray-700 mb-1">
                 Preferred Service Date <span className="text-red-500">*</span>
@@ -269,7 +305,9 @@ export default function CustomerVehicleForm() {
                   value={formData.serviceDate}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                    errors.serviceDate ? "border-red-500" : "border-gray-300"
+                    errors["customer.serviceDate"]
+                      ? "border-red-500"
+                      : "border-gray-300"
                   }`}
                 />
                 <Calendar
@@ -277,9 +315,9 @@ export default function CustomerVehicleForm() {
                   size={18}
                 />
               </div>
-              {errors.serviceDate && (
+              {errors["customer.serviceDate"] && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.serviceDate}
+                  {errors["customer.serviceDate"]}
                 </p>
               )}
             </div>

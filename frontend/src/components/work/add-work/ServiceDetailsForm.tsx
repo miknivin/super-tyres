@@ -1,5 +1,5 @@
 // src/components/work/add-work/ServiceDetailsPage.tsx
-import {  Plus, ChevronLeft, X } from "lucide-react";
+import { Plus, ChevronLeft, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../redux/store";
 import {
@@ -60,6 +60,7 @@ export default function ServiceDetailsPage() {
       { skip: !vehicleNo }, // don't fetch if no vehicleNo
     );
 
+  const errors = useSelector((state: RootState) => state.serviceEnquiry.errors);
   // Get the latest (most recent) service – first item after sorting desc
   const latestService = recentServices[0];
 
@@ -206,7 +207,14 @@ export default function ServiceDetailsPage() {
               })}
             </div>
           )}
-
+          {/* Selected services error – placed right below the grid */}
+          {errors["selectedServices"] && (
+            <div className="mt-4 text-center">
+              <p className="text-red-500 text-sm font-medium">
+                {errors["selectedServices"]}
+              </p>
+            </div>
+          )}
           {/* Add / Edit Complaint Button */}
           <button
             onClick={toggleComplaintInput}

@@ -10,7 +10,7 @@ public record CreateServiceEnquiryDto
     public string? PinCode { get; init; }
     public string VehicleName { get; init; } = string.Empty;
     public string VehicleNo { get; init; } = string.Empty;
-    public string? Odometer { get; init; }
+    public int Odometer { get; init; }
     public string Wheel { get; init; } = "";
     public string VehicleType { get; init; } = "";
     public DateTime? ServiceDate { get; init; }
@@ -67,12 +67,14 @@ public record AlignmentInspectionDataDto
 
 public record BalancingInspectionDataDto
 {
-    public string FrontLeftWeight { get; init; } = "";
-    public string FrontRightWeight { get; init; } = "";
-    public string RearLeftWeight { get; init; } = "";
-    public string RearRightWeight { get; init; } = "";
+    public decimal? FrontLeftWeight { get; init; }
+    public decimal? FrontRightWeight { get; init; }
+    public decimal? RearLeftWeight { get; init; }
+    public decimal? RearRightWeight { get; init; }
     public string? Complaint { get; init; }
 }
+
+
 
 public record PucInspectionDataDto
 {

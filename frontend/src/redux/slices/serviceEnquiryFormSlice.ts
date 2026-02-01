@@ -5,6 +5,7 @@ import type {
   OilLevel,
   OilQuality,
 } from "../../components/work/add-work/OilCheckForm";
+import { validateCurrentStep } from "./serviceValidationSlice";
 
 // ────────────────────────────────────────────────
 // Interfaces (same as before)
@@ -17,13 +18,13 @@ interface CustomerVehicleFormData {
   pinCode2: string;
   vehicleName: string;
   vehicleNo: string;
-  odometer: string;
+  odometer: number | undefined;
   wheel: "" | "2-wheeler" | "4-wheeler";
   vehicleType: "" | "sedan" | "suv" | "hatchback";
   serviceDate: string;
 }
 
-interface AlignmentData {
+export interface AlignmentData {
   lastServiceDate: string;
   complaint: string;
   inflationPressure: "AIR" | "NO";
@@ -36,7 +37,7 @@ interface TyreValues {
 
 type FuelType = "Petrol" | "Diesel" | "CNG/LPG" | null;
 
-interface TyreInspectionData {
+export interface TyreInspectionData {
   selectedTyre: TyrePosition | null;
   tyres: {
     frontLeft: TyreValues | null;
@@ -48,27 +49,27 @@ interface TyreInspectionData {
   customComplaint: string;
 }
 
-interface TyreRotationData {
+export interface TyreRotationData {
   rotationType: "4-tyre" | "unidirectional" | "5-tyre" | null;
   complaint: string;
 }
 
-interface BalancingData {
+export interface BalancingData {
   weights: {
-    frontLeft: string;
-    frontRight: string;
-    rearLeft: string;
-    rearRight: string;
+    frontLeft: number | undefined;
+    frontRight: number | undefined;
+    rearLeft: number | undefined;
+    rearRight: number | undefined;
   };
   complaint: string;
 }
 
-interface CarWashingData {
+export interface CarWashingData {
   selectedServices: string[];
   complaint: string;
 }
 
-interface TestToggles {
+export interface TestToggles {
   normalPUC: boolean;
   engineWarmUp: boolean;
   highRPM: boolean;
@@ -76,32 +77,29 @@ interface TestToggles {
   certificatePrint: boolean;
 }
 
-interface PUSOperatorData {
+export interface PUSOperatorData {
   tests: TestToggles;
   fuelType: FuelType;
 }
 
-interface BatteryCheckData {
+export interface BatteryCheckData {
   condition: BatteryCondition | null;
   voltage: number;
   specificGravity: number;
   complaint: string;
 }
 
-interface OilCheckUpData {
+export interface OilCheckUpData {
   quality: OilQuality | null;
   level: OilLevel | null;
   complaint: string;
 }
 
-interface ComplaintSummaryData {
+export interface ComplaintSummaryData {
   notes?: string;
 }
 
-// ────────────────────────────────────────────────
-// State with validation & status
-// ────────────────────────────────────────────────
-interface ServiceEnquiryState {
+export interface ServiceEnquiryState {
   currentStep: number;
   data: {
     selectedServices: string[];
@@ -138,7 +136,7 @@ const initialState: ServiceEnquiryState = {
       pinCode2: "",
       vehicleName: "",
       vehicleNo: "",
-      odometer: "",
+      odometer: undefined,
       wheel: "",
       vehicleType: "",
       serviceDate: "",
@@ -151,10 +149,10 @@ const initialState: ServiceEnquiryState = {
     tyreInspection: {
       selectedTyre: null,
       tyres: {
-        frontLeft: null,
-        frontRight: null,
-        rearLeft: null,
-        rearRight: null,
+        frontLeft: { treadDepth: "Good", tyrePressure: 33 },
+        frontRight: { treadDepth: "Good", tyrePressure: 33 },
+        rearLeft: { treadDepth: "Good", tyrePressure: 33 },
+        rearRight: { treadDepth: "Good", tyrePressure: 33 },
       },
       selectedComplaints: [],
       customComplaint: "",
@@ -165,10 +163,10 @@ const initialState: ServiceEnquiryState = {
     },
     balancing: {
       weights: {
-        frontLeft: "",
-        frontRight: "",
-        rearLeft: "",
-        rearRight: "",
+        frontLeft: undefined,
+        frontRight: undefined,
+        rearLeft: undefined,
+        rearRight: undefined,
       },
       complaint: "",
     },
@@ -207,50 +205,18 @@ const serviceEnquirySlice = createSlice({
   name: "serviceEnquiry",
   initialState,
   reducers: {
-    // ────────────────────────────────────────────────
-    // Navigation with validation guard
-    // ────────────────────────────────────────────────
-    nextStep: (state) => {
-      // Only allow next if customer form is valid when on step 0
-      if (state.currentStep === 0) {
-        const customer = state.data.customer;
-        const customerErrors: Record<string, string> = {};
+    nextStep: (state, action: PayloadAction<string | undefined>) => {
+      const stepKey = action.payload || "inspection"; // fallback if no payload
+      const newErrors = validateCurrentStep(state, stepKey);
 
-        if (!customer.name.trim()) customerErrors.name = "Name is required";
-        if (!customer.phone.trim()) customerErrors.phone = "Phone is required";
-        if (!customer.address.trim())
-          customerErrors.address = "Address is required";
-        if (!customer.city.trim()) customerErrors.city = "City is required";
-        if (!customer.pinCode1.trim())
-          customerErrors.pinCode1 = "Pin code is required";
-        if (!customer.vehicleName.trim())
-          customerErrors.vehicleName = "Vehicle name is required";
-        if (!customer.vehicleNo.trim())
-          customerErrors.vehicleNo = "Vehicle number is required";
-        if (!customer.odometer.trim())
-          customerErrors.odometer = "Odometer is required";
-        if (!customer.wheel) customerErrors.wheel = "Wheel type is required";
-        if (!customer.vehicleType)
-          customerErrors.vehicleType = "Vehicle type is required";
-       if (!customer.serviceDate) {
-          customerErrors.serviceDate = "Service date is required";
-        } else {
-          const selectedDate = new Date(customer.serviceDate);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0); // reset time to start of day
-          if (selectedDate < today) {
-            customerErrors.serviceDate = "Service date cannot be in the past";
-          }
-        }
-        state.errors = customerErrors;
+      state.errors = newErrors;
 
-        if (Object.keys(customerErrors).length > 0) {
-          return; // block next
-        }
+      if (Object.keys(newErrors).length > 0) {
+        return;
       }
 
       state.currentStep += 1;
-      state.errors = {}; // clear errors on successful next
+      state.errors = {};
     },
 
     prevStep: (state) => {
@@ -267,9 +233,6 @@ const serviceEnquirySlice = createSlice({
       }
     },
 
-    // ────────────────────────────────────────────────
-    // Existing form updates
-    // ────────────────────────────────────────────────
     updateCustomer: (
       state,
       action: PayloadAction<Partial<CustomerVehicleFormData>>,

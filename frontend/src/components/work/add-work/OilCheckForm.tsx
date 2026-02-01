@@ -1,9 +1,12 @@
 // src/components/work/add-work/OilCheckForm.tsx
-
 import { ChevronLeft, MoreVertical } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "../../../redux/store"; // adjust path
-import { goToStep, updateOilCheckUp } from "../../../redux/slices/serviceEnquiryFormSlice";
+import type { RootState } from "../../../redux/store";
+import {
+  goToStep,
+  updateOilCheckUp,
+  clearError,
+} from "../../../redux/slices/serviceEnquiryFormSlice";
 
 export type OilQuality = "Good" | "Average" | "Replace" | null;
 export type OilLevel = "Max" | "Normal" | "Min" | "Immediately Fill" | null;
@@ -11,19 +14,35 @@ export type OilLevel = "Max" | "Normal" | "Min" | "Immediately Fill" | null;
 export default function OilCheckForm() {
   const dispatch = useDispatch();
 
-  // Read current values from Redux
+  // ────────────────────────────────────────────────
+  // Read data & errors from Redux
+  // ────────────────────────────────────────────────
   const { quality, level, complaint } = useSelector(
     (state: RootState) => state.serviceEnquiry.data.oilCheckUp,
   );
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  const customer = useSelector(
+    (state: RootState) => state.serviceEnquiry.data.customer,
+  );
+  const errors = useSelector((state: RootState) => state.serviceEnquiry.errors);
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleQualityChange = (value: OilQuality) => {
     dispatch(updateOilCheckUp({ quality: value }));
+
+    // Clear quality error on change
+    if (errors["oilCheckUp.quality"]) {
+      dispatch(clearError({ field: "oilCheckUp.quality" }));
+    }
   };
 
   const handleLevelChange = (value: OilLevel) => {
     dispatch(updateOilCheckUp({ level: value }));
+
+    // Clear level error on change
+    if (errors["oilCheckUp.level"]) {
+      dispatch(clearError({ field: "oilCheckUp.level" }));
+    }
   };
 
   const handleComplaintChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -32,8 +51,8 @@ export default function OilCheckForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-md mx-auto">
-        {/* Back Button – optional (ServiceLayout usually handles navigation) */}
+      <div className="mx-auto">
+        {/* Back Button */}
         <button
           onClick={() => dispatch(goToStep(1))}
           className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6 transition-colors"
@@ -45,7 +64,9 @@ export default function OilCheckForm() {
         {/* Vehicle and Customer Info */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-xl font-bold text-gray-900">KL 57 M 8478</div>
+            <div className="text-xl font-bold text-gray-900">
+              {customer.vehicleNo || "Vehicle Number Not Set"}
+            </div>
             <button className="p-1 hover:bg-gray-100 rounded">
               <MoreVertical size={20} className="text-gray-600" />
             </button>
@@ -55,9 +76,12 @@ export default function OilCheckForm() {
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 Customer Details
               </h3>
-              <p className="text-sm text-gray-700 font-medium">Mirshad</p>
-              <p className="text-xs text-gray-500">+91 807 812 345</p>
-              <p className="text-xs text-gray-500">25,5400 km</p>
+              <p className="text-sm text-gray-700 font-medium">
+                {customer.name || "Not Set"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {customer.phone || "Not Set"}
+              </p>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
@@ -66,11 +90,17 @@ export default function OilCheckForm() {
               <div className="text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Service date</span>
-                  <span className="text-gray-900">12/02/2024</span>
+                  <span>
+                    {customer.serviceDate
+                      ? new Date(customer.serviceDate).toLocaleDateString()
+                      : "Not Set"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">km</span>
-                  <span className="text-gray-900">58,000 km</span>
+                  <span className="text-gray-600">Odometer</span>
+                  <span>
+                    {customer.odometer ? `${customer.odometer} km` : "Not Set"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -86,7 +116,7 @@ export default function OilCheckForm() {
           {/* Oil Quality */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Quality
+              Quality <span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-3">
               <button
@@ -120,12 +150,17 @@ export default function OilCheckForm() {
                 Replace
               </button>
             </div>
+            {errors["oilCheckUp.quality"] && (
+              <p className="text-red-500 text-xs mt-3 text-center">
+                {errors["oilCheckUp.quality"]}
+              </p>
+            )}
           </div>
 
           {/* Oil Level */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Oil Level
+              Oil Level <span className="text-red-500">*</span>
             </h3>
             <div className="space-y-3">
               <div className="flex gap-3">
@@ -175,9 +210,14 @@ export default function OilCheckForm() {
                 <span className="text-sm text-gray-700">Immediately Fill</span>
               </label>
             </div>
+            {errors["oilCheckUp.level"] && (
+              <p className="text-red-500 text-xs mt-3 text-center">
+                {errors["oilCheckUp.level"]}
+              </p>
+            )}
           </div>
 
-          {/* Complaint Text Area */}
+          {/* Complaint Text Area – optional */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Complaint / Notes
@@ -191,8 +231,6 @@ export default function OilCheckForm() {
             />
           </div>
         </div>
-
-        {/* No Back/Next buttons – handled by ServiceLayout */}
       </div>
     </div>
   );

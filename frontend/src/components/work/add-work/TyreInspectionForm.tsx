@@ -3,7 +3,11 @@
 import { Minus, Plus, ChevronLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../redux/store"; // adjust path according to your structure
-import { goToStep, updateTyreInspection } from "../../../redux/slices/serviceEnquiryFormSlice"; // adjust path
+import {
+  clearError,
+  goToStep,
+  updateTyreInspection,
+} from "../../../redux/slices/serviceEnquiryFormSlice"; // adjust path
 
 // ── Type definition ────────────────────────────────────────────────────────
 export type TyrePosition =
@@ -19,7 +23,7 @@ export default function TyreInspectionForm() {
   // Get current form data from Redux
   const { selectedTyre, tyres, selectedComplaints, customComplaint } =
     useSelector((state: RootState) => state.serviceEnquiry.data.tyreInspection);
-
+  const errors = useSelector((state: RootState) => state.serviceEnquiry.errors);
   // Get values for currently selected tyre (fallback to defaults if not set)
   const currentValues = selectedTyre ? tyres[selectedTyre] : null;
 
@@ -35,6 +39,10 @@ export default function TyreInspectionForm() {
   ) => {
     if (selectedTyre) {
       dispatch(updateTyreInspection({ tyre: selectedTyre, values: updates }));
+      const tyreKey = `tyreInspection.tyres.${selectedTyre}`;
+      if (errors[tyreKey]) {
+        dispatch(clearError({ field: tyreKey }));
+      }
     }
   };
 
@@ -136,7 +144,10 @@ export default function TyreInspectionForm() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {pos.replace(/([A-Z])/g, " $1").trim()}
+                {pos
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()
+                  .toUpperCase()}
               </button>
             ))}
           </div>
@@ -148,7 +159,11 @@ export default function TyreInspectionForm() {
             {/* Tread Depth */}
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h3 className="text-base font-semibold text-gray-900 mb-4">
-                Tread Depth – {selectedTyre.replace(/([A-Z])/g, " $1").trim()}
+                Tread Depth –{" "}
+                {selectedTyre
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()
+                  .toUpperCase()}
               </h3>
               <div className="grid grid-cols-3 gap-3">
                 {(["Good", "Average", "Replace"] as const).map((status) => (
@@ -169,12 +184,21 @@ export default function TyreInspectionForm() {
                   </button>
                 ))}
               </div>
+              {errors[`tyreInspection.tyres.${selectedTyre}`] && (
+                <p className="text-red-500 text-xs mt-3 text-center">
+                  {errors[`tyreInspection.tyres.${selectedTyre}`]}
+                </p>
+              )}
             </div>
 
             {/* Tyre Pressure */}
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h3 className="text-base font-semibold text-gray-900 mb-4">
-                Tyre Pressure – {selectedTyre.replace(/([A-Z])/g, " $1").trim()}{" "}
+                Tyre Pressure –{" "}
+                {selectedTyre
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()
+                  .toUpperCase()}{" "}
                 (PSI)
               </h3>
               <div className="flex items-center justify-center sm:justify-start gap-5">
@@ -207,6 +231,11 @@ export default function TyreInspectionForm() {
                   <Plus size={20} className="text-gray-700" />
                 </button>
               </div>
+              {errors[`tyreInspection.tyres.${selectedTyre}.tyrePressure`] && (
+                <p className="text-red-500 text-xs mt-3 text-center">
+                  {errors[`tyreInspection.tyres.${selectedTyre}.tyrePressure`]}
+                </p>
+              )}
             </div>
           </div>
         ) : (

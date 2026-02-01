@@ -13,7 +13,7 @@ public class ServiceEnquiry
     public string? PinCode { get; set; }
     public string VehicleName { get; set; } = string.Empty;
     public string VehicleNo { get; set; } = string.Empty;
-    public string? Odometer { get; set; }
+    public int Odometer { get; set; }
     public string Wheel { get; set; } = "";               // "2-wheeler" | "4-wheeler"
     public string VehicleType { get; set; } = "";         // "sedan" | "suv" | "hatchback"
     public DateTime? ServiceDate { get; set; }

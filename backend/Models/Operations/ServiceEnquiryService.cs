@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using backend.Models.ServiceManagement;
 
 namespace backend.Models.Operations;
@@ -7,7 +8,7 @@ public class ServiceEnquiryService
 {
 
     public Guid ServiceEnquiryId { get; set; }
-
+    [JsonIgnore]
     public ServiceEnquiry ServiceEnquiry { get; set; } = null!;
 
     public Guid ServiceId { get; set; }

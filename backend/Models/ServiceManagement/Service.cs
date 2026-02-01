@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using backend.Models.Operations;
 
 namespace backend.Models.ServiceManagement;
@@ -11,6 +12,7 @@ public class Service
     public string? Category { get; set; }
     public string? Image { get; set; }
     public bool IsActive { get; set; } = true;
+    public Designation? Designation { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

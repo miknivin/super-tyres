@@ -22,48 +22,6 @@ namespace backend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BalancingInspectionRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Complaint")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FrontLeftWeight")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FrontRightWeight")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RearLeftWeight")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RearRightWeight")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("ServiceEnquiryId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServiceEnquiryId")
-                        .IsUnique();
-
-                    b.ToTable("BalancingInspectionRecords");
-                });
-
             modelBuilder.Entity("PucInspectionRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -103,6 +61,51 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("PucInspectionRecords");
+                });
+
+            modelBuilder.Entity("backend.Models.Designation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("ServiceId")
+                        .IsUnique();
+
+                    b.ToTable("Designations");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.AlignmentChecklistRecord", b =>
@@ -200,6 +203,44 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("BalancingChecklistRecords");
+                });
+
+            modelBuilder.Entity("backend.Models.Operations.BalancingInspectionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Complaint")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("FrontLeftWeight")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("FrontRightWeight")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("RearLeftWeight")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("RearRightWeight")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("ServiceEnquiryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceEnquiryId")
+                        .IsUnique();
+
+                    b.ToTable("BalancingInspectionRecords");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.BatteryInspectionRecord", b =>
@@ -392,8 +433,8 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Odometer")
-                        .HasColumnType("text");
+                    b.Property<int>("Odometer")
+                        .HasColumnType("integer");
 
                     b.Property<string>("PinCode")
                         .HasColumnType("text");
@@ -614,6 +655,24 @@ namespace backend.Migrations
                     b.ToTable("Services");
                 });
 
+            modelBuilder.Entity("backend.Models.UserDesignation", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DesignationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "DesignationId");
+
+                    b.HasIndex("DesignationId");
+
+                    b.ToTable("UserDesignations");
+                });
+
             modelBuilder.Entity("backend.Models.auth.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -658,17 +717,6 @@ namespace backend.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("BalancingInspectionRecord", b =>
-                {
-                    b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
-                        .WithOne("BalancingInspection")
-                        .HasForeignKey("BalancingInspectionRecord", "ServiceEnquiryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ServiceEnquiry");
-                });
-
             modelBuilder.Entity("PucInspectionRecord", b =>
                 {
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
@@ -678,6 +726,16 @@ namespace backend.Migrations
                         .IsRequired();
 
                     b.Navigation("ServiceEnquiry");
+                });
+
+            modelBuilder.Entity("backend.Models.Designation", b =>
+                {
+                    b.HasOne("backend.Models.ServiceManagement.Service", "Service")
+                        .WithOne("Designation")
+                        .HasForeignKey("backend.Models.Designation", "ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.AlignmentChecklistRecord", b =>
@@ -707,6 +765,17 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("BalancingChecklist")
                         .HasForeignKey("backend.Models.Operations.BalancingChecklistRecord", "ServiceEnquiryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceEnquiry");
+                });
+
+            modelBuilder.Entity("backend.Models.Operations.BalancingInspectionRecord", b =>
+                {
+                    b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
+                        .WithOne("BalancingInspection")
+                        .HasForeignKey("backend.Models.Operations.BalancingInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -916,6 +985,30 @@ namespace backend.Migrations
                     b.Navigation("ServiceEnquiry");
                 });
 
+            modelBuilder.Entity("backend.Models.UserDesignation", b =>
+                {
+                    b.HasOne("backend.Models.Designation", "Designation")
+                        .WithMany("UserDesignations")
+                        .HasForeignKey("DesignationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.auth.User", "User")
+                        .WithMany("UserDesignations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Designation");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend.Models.Designation", b =>
+                {
+                    b.Navigation("UserDesignations");
+                });
+
             modelBuilder.Entity("backend.Models.Operations.ServiceEnquiry", b =>
                 {
                     b.Navigation("AlignmentChecklist");
@@ -949,7 +1042,14 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.ServiceManagement.Service", b =>
                 {
+                    b.Navigation("Designation");
+
                     b.Navigation("EnquiryServices");
+                });
+
+            modelBuilder.Entity("backend.Models.auth.User", b =>
+                {
+                    b.Navigation("UserDesignations");
                 });
 #pragma warning restore 612, 618
         }
