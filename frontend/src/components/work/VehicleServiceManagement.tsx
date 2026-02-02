@@ -1,83 +1,64 @@
-import { useState } from "react";
+// src/components/work/VehicleServiceManagement.tsx
 import { Plus } from "lucide-react";
-import type { Vehicle } from "../../types/vehicle";
+import { Link } from "react-router-dom";
+import { useGetAllServiceEnquiriesQuery } from "../../redux/api/servicesApi";
 import SearchBar from "./SearchBar";
 import OngoingVehicleCard from "./OngoingVehicleCard";
 import CompletedVehicleCard from "./CompletedVehicleCard";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const VehicleServiceManagement = () => {
   const [activeTab, setActiveTab] = useState<"ongoing" | "completed">(
     "ongoing",
   );
 
-  const ongoingVehicles: Vehicle[] = [
-    {
-      id: 1,
-      plate: "KL 57 M 8478",
-      owner: "Mirshad",
-      phone: "807812345",
-      mileage: "25,5400 km",
-      services: "Tyre Inspection, Alignment +2more",
-      status: "awaiting",
-    },
-    {
-      id: 2,
-      plate: "KL 57 M 8478",
-      owner: "Leo",
-      phone: "807812345",
-      mileage: "56,900 km",
-      services: "Tyre Inspection",
-      timeBadge: "+5 minute",
-      status: "ongoing",
-    },
-    {
-      id: 3,
-      plate: "KL 11 AB 1128",
-      owner: "Mack",
-      phone: "807812345",
-      mileage: "25,734 km",
-      services: "Washing",
-      timeBadge: "+25 minute",
-      status: "ongoing",
-    },
-  ];
+  // Fetch all service enquiries from backend
+  const {
+    data: enquiries = [],
+    isLoading,
+    isError,
+  } = useGetAllServiceEnquiriesQuery();
 
-  const completedVehicles: Vehicle[] = [
-    {
-      id: 4,
-      plate: "KL 57 1123",
-      owner: "Mirshad",
-      phone: "+91 807 812 345",
-      mileage: "25,5400 km",
-      success: true,
-    },
-    {
-      id: 5,
-      plate: "KL 57 MM 1123",
-      owner: "Mirshad",
-      phone: "+91 807 812 345",
-      mileage: "25,5400 km",
-      success: true,
-    },
-    {
-      id: 6,
-      plate: "KL MM 1123",
-      owner: "Mirshad",
-      phone: "+91 807 812 345",
-      mileage: "25,540 km",
-      success: true,
-    },
-  ];
+  // Split enquiries into ongoing and completed
+  const ongoingEnquiries = enquiries.filter(
+    (e) =>
+      e.status.toLowerCase() === "pending" ||
+      e.status.toLowerCase() === "in progress" ||
+      e.status.toLowerCase() === "ongoing",
+  );
+
+  const completedEnquiries = enquiries.filter(
+    (e) => e.status.toLowerCase() === "completed",
+  );
 
   const displayed =
-    activeTab === "ongoing" ? ongoingVehicles : completedVehicles;
+    activeTab === "ongoing" ? ongoingEnquiries : completedEnquiries;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-3xl mx-auto text-center py-12 text-gray-600">
+          Loading Enquiries...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-3xl mx-auto text-center py-12 text-red-600">
+          Failed to load vehicles. Please try again later.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      {/* Header */}
       <div className="max-w-3xl mx-auto">
-        <div className="bg-teal-600 text-white px-4 py-5 flex items-center justify-between rounded-md">
+        {/* Header */}
+        <div className="bg-teal-600 text-white px-4 py-5 flex items-center justify-between rounded-md mb-6">
           <span className="text-lg font-semibold">Add New Vehicle</span>
           <Link to="/work/add">
             <Plus className="w-7 h-7" />
@@ -90,40 +71,71 @@ const VehicleServiceManagement = () => {
         <div className="flex gap-6 my-4 border-b border-gray-200">
           <button
             onClick={() => setActiveTab("ongoing")}
-            className={`pb-2 font-medium text-sm ${
+            className={`pb-2 font-medium text-sm transition-colors ${
               activeTab === "ongoing"
                 ? "text-teal-700 border-b-2 border-teal-700"
-                : "text-gray-500"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            Ongoing work
+            Ongoing work ({ongoingEnquiries.length})
           </button>
           <button
             onClick={() => setActiveTab("completed")}
-            className={`pb-2 font-medium text-sm ${
+            className={`pb-2 font-medium text-sm transition-colors ${
               activeTab === "completed"
                 ? "text-teal-700 border-b-2 border-teal-700"
-                : "text-gray-500"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            Completed
+            Completed ({completedEnquiries.length})
           </button>
         </div>
 
         {/* Cards */}
         <div className="mt-5 space-y-4">
-          {displayed.map((vehicle) => (
-            <div
-              key={vehicle.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
-            >
-              {activeTab === "ongoing" ? (
-                <OngoingVehicleCard vehicle={vehicle} />
-              ) : (
-                <CompletedVehicleCard vehicle={vehicle} />
-              )}
+          {displayed.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              {activeTab === "ongoing"
+                ? "No ongoing work at the moment"
+                : "No completed work yet"}
             </div>
-          ))}
+          ) : (
+            displayed.map((enquiry) => (
+              <div
+                key={enquiry.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
+              >
+                {activeTab === "ongoing" ? (
+                  <OngoingVehicleCard
+                    vehicle={{
+                      id: enquiry.id,
+                      plate: enquiry.vehicleNo,
+                      owner: enquiry.customerName,
+                      phone: enquiry.customerPhone,
+                      odometer: enquiry.odometer ? enquiry.odometer : 0,
+                      services: enquiry.serviceWithNames
+                        .map((s) => s.name)
+                        .join(", "),
+                      status: enquiry.status.toLowerCase(),
+                    }}
+                  />
+                ) : (
+                  <CompletedVehicleCard
+                    vehicle={{
+                      id: enquiry.id,
+                      plate: enquiry.vehicleNo,
+                      owner: enquiry.customerName,
+                      phone: enquiry.customerPhone,
+                      mileage: enquiry.odometer
+                        ? `${enquiry.odometer} km`
+                        : "N/A",
+                      success: true,
+                    }}
+                  />
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

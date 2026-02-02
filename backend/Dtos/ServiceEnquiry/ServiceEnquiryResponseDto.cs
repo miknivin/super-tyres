@@ -1,44 +1,156 @@
 namespace backend.Dtos.ServiceEnquiry;
-
-public record ServiceEnquiryResponseDto
+public class ServiceEnquiryResponseDto
 {
-    public Guid Id { get; init; }
+    public Guid Id { get; set; }
 
-    public string CustomerName { get; init; } = string.Empty;
-    public string CustomerPhone { get; init; } = string.Empty;
-    public string? CustomerAddress { get; init; }
-    public string? CustomerCity { get; init; }
-    public string? PinCode { get; init; }
-    public string VehicleName { get; init; } = string.Empty;
-    public string VehicleNo { get; init; } = string.Empty;
-    public string? Odometer { get; init; }
-    public string Wheel { get; init; } = "";
-    public string VehicleType { get; init; } = "";
-    public DateTime? ServiceDate { get; init; }
+    // Customer & Vehicle
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerPhone { get; set; } = string.Empty;
+    public string? CustomerAddress { get; set; }
+    public string? CustomerCity { get; set; }
+    public string? PinCode { get; set; }
 
-    public string Status { get; init; } = string.Empty;
-    public string ComplaintNotes { get; init; } = string.Empty;
+    public string VehicleName { get; set; } = string.Empty;
+    public string VehicleNo { get; set; } = string.Empty;
+    public int Odometer { get; set; }
+    public string Wheel { get; set; } = string.Empty;
+    public string VehicleType { get; set; } = string.Empty;
 
-    public string[] SelectedServiceCodes { get; init; } = Array.Empty<string>();
+    public DateTime? ServiceDate { get; set; }
 
-    public TyreChecklistDataDto? TyreChecklist { get; init; }
-    public TyreInspectionDataDto? TyreInspection { get; init; }
+    // General
+    public string ComplaintNotes { get; set; } = string.Empty;
+    public string Status { get; set; } = "Pending";
 
-    public AlignmentChecklistDataDto? AlignmentChecklist { get; init; }
-    public AlignmentInspectionDataDto? AlignmentInspection { get; init; }
+    // Timestamps
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public List<string> SelectedServiceCodes { get; set; } = new();
+    // Selected services (flat list – no back-reference)
+    public List<ServiceEnquiryServiceResponseDto> SelectedServices { get; set; } = new();
+    // All inspections – nullable so they only appear when relevant
+    public TyreInspectionResponseDto? TyreInspection { get; set; }
+    public TyreRotationInspectionResponseDto? TyreRotationInspection { get; set; }
+    public AlignmentInspectionResponseDto? AlignmentInspection { get; set; }
+    public BalancingInspectionResponseDto? BalancingInspection { get; set; }
+    public PucInspectionResponseDto? PucInspection { get; set; }
+    public CarWashInspectionResponseDto? CarWashInspection { get; set; }
+    public BatteryInspectionResponseDto? BatteryInspection { get; set; }
+    public OilInspectionResponseDto? OilInspection { get; set; }
+    public List<ServiceWithNameDto>? ServiceWithNames { get; set; }
+}
 
-    public BalancingChecklistDataDto? BalancingChecklist { get; init; }
-    public BalancingInspectionDataDto? BalancingInspection { get; init; }
+public class ServiceWithNameDto
+{
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}
 
-    public PucChecklistDataDto? PucChecklist { get; init; }
-    public PucInspectionDataDto? PucInspection { get; init; }
+public class ServiceEnquiryServiceItemDto
+{
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}
+// ────────────────────────────────────────────────
+// Nested DTOs (keep in same file or separate)
 
-    public CarWashChecklistDataDto? CarWashChecklist { get; init; }
-    public CarWashInspectionDataDto? CarWashInspection { get; init; }
+public class ServiceEnquiryServiceResponseDto
+{
+    public Guid ServiceId { get; set; }
+    public int ExecutionOrder { get; set; }
+    public int? EstimatedMinutes { get; set; }
+    public int? ActualMinutes { get; set; }
+    public decimal? PriceCharged { get; set; }
+    public string? Notes { get; set; }
+}
 
-    public BatteryInspectionDataDto? BatteryInspection { get; init; }
-    public OilInspectionDataDto? OilInspection { get; init; }
+// Tyre Inspection
+public class TyreInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public string? SelectedTyre { get; set; }
+    public TyreValuesDto? FrontLeft { get; set; }
+    public TyreValuesDto? FrontRight { get; set; }
+    public TyreValuesDto? RearLeft { get; set; }
+    public TyreValuesDto? RearRight { get; set; }
+    public string[]? SelectedComplaints { get; set; }
+    public string? CustomComplaint { get; set; }
+    public string? RotationType { get; set; }
+    public string? RotationComplaint { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
 
-    public DateTime CreatedAt { get; init; }
-    public DateTime? UpdatedAt { get; init; }
+
+// Tyre Rotation Inspection
+public class TyreRotationInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public string? RotationType { get; set; }
+    public string? Complaint { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+// Alignment Inspection
+public class AlignmentInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public DateTime? LastServiceDate { get; set; }
+    public string? Complaint { get; set; }
+    public string? InflationPressure { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+// Balancing Inspection
+public class BalancingInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public decimal? FrontLeftWeight { get; set; }
+    public decimal? FrontRightWeight { get; set; }
+    public decimal? RearLeftWeight { get; set; }
+    public decimal? RearRightWeight { get; set; }
+    public string? Complaint { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+// PUC Inspection
+public class PucInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public bool? NormalPUC { get; set; }
+    public bool? EngineWarmUp { get; set; }
+    public bool? HighRPM { get; set; }
+    public bool? IdleRPM { get; set; }
+    public bool? CertificatePrint { get; set; }
+    public string? FuelType { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+// Car Wash Inspection
+public class CarWashInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public string[]? SelectedServices { get; set; }
+    public string? Complaint { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+// Battery Inspection
+public class BatteryInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public string? Condition { get; set; }      // e.g. "Good", "NeedsReplacement"
+    public double? Voltage { get; set; }
+    public double? SpecificGravity { get; set; }
+    public string? Complaint { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+// Oil Inspection (already had it – included for completeness)
+public class OilInspectionResponseDto
+{
+    public Guid Id { get; set; }
+    public string? Quality { get; set; }     // e.g. "Good", "Fair"
+    public string? Level { get; set; }       // e.g. "Normal", "Low"
+    public string? Complaint { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }

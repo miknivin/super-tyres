@@ -1,18 +1,6 @@
 // src/redux/api/servicesApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-// Import the exact types from your slice
-import type {
-  TyreInspectionData,
-  TyreRotationData,
-  AlignmentData,
-  BalancingData,
-  CarWashingData,
-  PUSOperatorData,
-  BatteryCheckData,
-  OilCheckUpData,
-} from "../slices/serviceEnquiryFormSlice";
-
 // ────────────────────────────────────────────────
 // Existing types (Service, RecentService) unchanged
 // ────────────────────────────────────────────────
@@ -41,8 +29,88 @@ export interface RecentService {
 }
 
 // ────────────────────────────────────────────────
-// Request shape for creating Service Enquiry
-// Reuses the exact types from your slice
+// Re-use exact types from your slice for request
+// ────────────────────────────────────────────────
+import type {
+  TyreInspectionData,
+  TyreRotationData,
+  AlignmentData,
+  BalancingData,
+  CarWashingData,
+  PUSOperatorData,
+  BatteryCheckData,
+  OilCheckUpData,
+} from "../slices/serviceEnquiryFormSlice";
+
+// ────────────────────────────────────────────────
+// Checklist DTOs (matching your DTO structure)
+// ────────────────────────────────────────────────
+export interface TyreChecklistResponse {
+  id: string;
+  serviceEnquiryId: string;
+  correctTyreSizeVerified: boolean;
+  noBeadSidewallDamage: boolean;
+  correctInflation: boolean;
+  wheelNutsTorqued: boolean;
+  technicianNotes?: string | null;
+  completedAt?: string | null;
+}
+
+export interface AlignmentChecklistResponse {
+  id: string;
+  serviceEnquiryId: string;
+  suspensionChecked: boolean;
+  steeringCentered: boolean;
+  beforeAfterReportPrinted: boolean;
+  technicianNotes?: string | null;
+  completedAt?: string | null;
+}
+
+export interface BalancingChecklistResponse {
+  id: string;
+  serviceEnquiryId: string;
+  wheelCleaned: boolean;
+  weightsFixedSecurely: boolean;
+  finalRecheckDone: boolean;
+  technicianNotes?: string | null;
+  completedAt?: string | null;
+}
+
+export interface PucChecklistResponse {
+  id: string;
+  serviceEnquiryId: string;
+  engineWarmed: boolean;
+  probeInsertedCorrectly: boolean;
+  certificatePrintedAndUploaded: boolean;
+  technicianNotes?: string | null;
+  completedAt?: string | null;
+}
+
+export interface CarWashChecklistResponse {
+  id: string;
+  serviceEnquiryId: string;
+  exteriorWashed: boolean;
+  interiorVacuumed: boolean;
+  noWaterOnEngineElectrics: boolean;
+  technicianNotes?: string | null;
+  completedAt?: string | null;
+}
+
+// ────────────────────────────────────────────────
+// Response shape for /service-enquiry/{id}/checklists
+// ────────────────────────────────────────────────
+export interface ServiceEnquiryChecklistsResponse {
+  serviceEnquiryId: string;
+  selectedServiceCodes: string[];
+  tyreChecklist?: TyreChecklistResponse | null;
+  alignmentChecklist?: AlignmentChecklistResponse | null;
+  balancingChecklist?: BalancingChecklistResponse | null;
+  pucChecklist?: PucChecklistResponse | null;
+  carWashChecklist?: CarWashChecklistResponse | null;
+}
+
+// ────────────────────────────────────────────────
+// Request shape for creating Service Enquiry (unchanged)
 // ────────────────────────────────────────────────
 interface CreateServiceEnquiryRequest {
   customerName: string;
@@ -57,10 +125,7 @@ interface CreateServiceEnquiryRequest {
   vehicleType: string;
   serviceDate: string;
   complaintNotes?: string;
-
   selectedServices: string[];
-
-  // Re-use the exact types from your slice
   tyreInspection?: TyreInspectionData;
   tyreRotationInspection?: TyreRotationData;
   alignmentInspection?: AlignmentData;
@@ -71,12 +136,26 @@ interface CreateServiceEnquiryRequest {
   oilInspection?: OilCheckUpData;
 }
 
-// Minimal response type (expand later if needed)
+// Minimal response type for create (expand later)
 interface ServiceEnquiryResponse {
   id: string;
-  // add any other fields you return from backend
 }
 
+export interface ServiceEnquiryListItem {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  vehicleNo: string;
+  vehicleName: string;
+  status: string;
+  createdAt: string;
+  serviceDate?: string | null;
+  odometer?: number | null;
+  serviceWithNames: Array<{
+    code: string;
+    name: string;
+  }>;
+}
 // ────────────────────────────────────────────────
 // API Definition
 // ────────────────────────────────────────────────
@@ -86,9 +165,15 @@ export const servicesApi = createApi({
     baseUrl: "/api",
     credentials: "include",
   }),
-  tagTypes: ["Services", "Service", "RecentServices", "ServiceEnquiry"],
+  tagTypes: [
+    "Services",
+    "Service",
+    "RecentServices",
+    "ServiceEnquiry",
+    "Checklists",
+  ],
   endpoints: (builder) => ({
-    // ── Existing endpoints unchanged ───────────────────────────────────────
+    // ── Existing endpoints (unchanged) ─────────────────────────────────────
     getServices: builder.query<Service[], void>({
       query: () => "/services",
       providesTags: ["Services"],
@@ -141,7 +226,7 @@ export const servicesApi = createApi({
       providesTags: ["RecentServices"],
     }),
 
-    // ── NEW: Create Service Enquiry using imported types ────────────────────
+    // ── Create Service Enquiry (unchanged)
     createServiceEnquiry: builder.mutation<
       ServiceEnquiryResponse,
       CreateServiceEnquiryRequest
@@ -152,6 +237,22 @@ export const servicesApi = createApi({
         body,
       }),
       invalidatesTags: ["ServiceEnquiry"],
+    }),
+
+    // ── NEW: Get checklists for a specific service enquiry
+    getServiceEnquiryChecklists: builder.query<
+      ServiceEnquiryChecklistsResponse,
+      string // enquiry ID
+    >({
+      query: (enquiryId) => `/service-enquiry/${enquiryId}/checklists`,
+      providesTags: (result, error, id) => [
+        { type: "Checklists", id },
+        "ServiceEnquiry",
+      ],
+    }),
+    getAllServiceEnquiries: builder.query<ServiceEnquiryListItem[], void>({
+      query: () => "/service-enquiry",
+      providesTags: ["ServiceEnquiry"],
     }),
   }),
 });
@@ -165,6 +266,8 @@ export const {
   useDeleteServiceMutation,
   useGetRecentServicesQuery,
   useCreateServiceEnquiryMutation,
+  useGetAllServiceEnquiriesQuery,
+  useGetServiceEnquiryChecklistsQuery, // ← new hook
 } = servicesApi;
 
 export default servicesApi.reducer;

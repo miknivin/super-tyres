@@ -60,7 +60,7 @@ public record TyreValuesDto
 
 public record AlignmentInspectionDataDto
 {
-    public string? LastServiceDate { get; init; }
+    public DateTime? LastServiceDate { get; init; }
     public string? Complaint { get; init; }
     public string InflationPressure { get; init; } = "NO";
 }

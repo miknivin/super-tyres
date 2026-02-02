@@ -30,6 +30,7 @@ export default function App() {
           <Route path="/work" element={<WorkPage />} />
           <Route path="/work/add" element={<AddWorkPage />} />
           <Route path="/work/:id" element={<VehicleServiceAndChecklist />} />
+   
           <Route path="/profile" element={<EmployeeProfile />} />
           <Route path="/work-alerts" element={<WorkAlertsListPage />} />
         </Route>

@@ -1,18 +1,24 @@
-import type { ReactNode } from "react";
+import type { JSX } from "react";
+import { Link } from "react-router-dom";
 
 // 1. Define the props type
-type ChecklistCardProps = {
-  icon: ReactNode; // icon can be JSX element, component, SVG, etc.
+interface ChecklistCardProps {
+  imageUrl?: string; // ← new prop for real service image
+  icon?: JSX.Element; // ← keep optional if you want fallback
   title: string;
-  status: "Pending" | "Completed" | "In Progress" | string; // string fallback
-  progress: number; // 0–100 expected
-};
+  status: string;
+  code: string;
+  enquiryId: string;
+  progress: number;
+}
 
 // 2. Component with TypeScript
 const ChecklistCard = ({
-  icon,
+  imageUrl,
   title,
   status,
+  code,
+  enquiryId,
   progress,
 }: ChecklistCardProps) => {
   // Helper function with typed parameter
@@ -30,10 +36,15 @@ const ChecklistCard = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-3">
+    <Link
+      to={`/work/${enquiryId}/${code}`}
+      className="bg-white border border-gray-200 rounded-lg p-4 mb-3"
+    >
       <div className="flex items-center gap-4">
         {/* Icon container */}
-        <div className="w-16 h-16 shrink-0">{icon}</div>
+        <div className="w-20 h-20 shrink-0">
+          <img src={imageUrl} className="w-full h-full" alt="" />
+        </div>
 
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
@@ -62,7 +73,7 @@ const ChecklistCard = ({
           <p className="text-xs text-gray-500 mt-1">Work in progress</p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

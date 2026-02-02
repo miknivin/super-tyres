@@ -95,7 +95,6 @@ export default function ServiceDetailsPage() {
           <ChevronLeft size={20} />
           <span className="text-sm font-medium">Back to Customer</span>
         </button>
-
         {/* Vehicle & Customer Summary Card – dynamic from Redux */}
         <div className="bg-white rounded-xl shadow-sm p-5 mb-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">

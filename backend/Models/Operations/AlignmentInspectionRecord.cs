@@ -7,7 +7,7 @@ public class AlignmentInspectionRecord
     public Guid ServiceEnquiryId { get; set; }
     public ServiceEnquiry ServiceEnquiry { get; set; } = null!;
 
-    public string? LastServiceDate { get; set; }
+    public DateTime? LastServiceDate { get; set; }
     public string? Complaint { get; set; }
     public string InflationPressure { get; set; } = "NO";
 
