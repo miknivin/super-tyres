@@ -29,13 +29,8 @@ export default function OngoingVehicleCard({ vehicle }: Props) {
         )}
       </div>
 
-      {/* Image placeholder — replace with real <img> when available */}
-      <div className="bg-gray-100 h-40 rounded-lg mb-4 flex items-center justify-center text-gray-400 text-sm">
-        Vehicle Image
-      </div>
-
       <div className="flex items-center gap-3 text-sm text-gray-600 mb-4">
-        <span>{vehicle.odometer}</span>
+        <span>{vehicle.odometer} Km</span>
         <span className="text-gray-300">|</span>
         {vehicle.services && <span>{vehicle.services}</span>}
       </div>

@@ -3,6 +3,7 @@ import { authApi } from "./api/authApi";
 import authReducer from "./slices/authSlice";
 import serviceEnquiryReducer from "./slices/serviceEnquiryFormSlice";
 import { servicesApi } from "./api/servicesApi";
+import { designationsApi } from "./api/designationApi";
 
 export const store = configureStore({
   reducer: {
@@ -10,9 +11,14 @@ export const store = configureStore({
     serviceEnquiry: serviceEnquiryReducer,
     [authApi.reducerPath]: authApi.reducer,
     [servicesApi.reducerPath]: servicesApi.reducer,
+    [designationsApi.reducerPath]: designationsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware, servicesApi.middleware),
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      servicesApi.middleware,
+      designationsApi.middleware,
+    ),
   devTools: import.meta.env.DEV,
 });
 

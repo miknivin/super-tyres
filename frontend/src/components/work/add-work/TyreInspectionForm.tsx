@@ -12,8 +12,8 @@ import {
 // ── Type definition ────────────────────────────────────────────────────────
 export type TyrePosition =
   | "frontLeft"
-  | "frontRight"
   | "rearLeft"
+  | "frontRight"
   | "rearRight"
   | null;
 
@@ -75,8 +75,8 @@ export default function TyreInspectionForm() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-3xl">
+    <div>
+      <div className="mx-auto">
         {/* Back button – optional (ServiceLayout usually handles navigation) */}
         <button
           onClick={() => dispatch(goToStep(1))}
@@ -99,32 +99,32 @@ export default function TyreInspectionForm() {
             <div className="absolute top-[14%] left-[9%]">
               <input
                 type="checkbox"
-                checked={selectedTyre === "frontLeft"}
-                onChange={() => handleSelectTyre("frontLeft")}
+                checked={selectedTyre === "frontRight"}
+                onChange={() => handleSelectTyre("frontRight")}
                 className="w-5 h-5 accent-teal-600 cursor-pointer"
               />
             </div>
             <div className="absolute top-[14%] right-[9%]">
               <input
                 type="checkbox"
-                checked={selectedTyre === "frontRight"}
-                onChange={() => handleSelectTyre("frontRight")}
+                checked={selectedTyre === "rearRight"}
+                onChange={() => handleSelectTyre("rearRight")}
                 className="w-5 h-5 accent-teal-600 cursor-pointer"
               />
             </div>
             <div className="absolute bottom-[14%] left-[9%]">
               <input
                 type="checkbox"
-                checked={selectedTyre === "rearLeft"}
-                onChange={() => handleSelectTyre("rearLeft")}
+                checked={selectedTyre === "frontLeft"}
+                onChange={() => handleSelectTyre("frontLeft")}
                 className="w-5 h-5 accent-teal-600 cursor-pointer"
               />
             </div>
             <div className="absolute bottom-[14%] right-[9%]">
               <input
                 type="checkbox"
-                checked={selectedTyre === "rearRight"}
-                onChange={() => handleSelectTyre("rearRight")}
+                checked={selectedTyre === "rearLeft"}
+                onChange={() => handleSelectTyre("rearLeft")}
                 className="w-5 h-5 accent-teal-600 cursor-pointer"
               />
             </div>

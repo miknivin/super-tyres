@@ -30,7 +30,7 @@ export interface AlignmentData {
   inflationPressure: "AIR" | "NO";
 }
 
-interface TyreValues {
+export interface TyreValues {
   treadDepth: "Good" | "Average" | "Replace";
   tyrePressure: number;
 }
@@ -121,7 +121,7 @@ export interface ServiceEnquiryState {
   submitStatus: "idle" | "loading" | "success" | "error";
   submitError?: string;
 }
-
+const today = new Date().toISOString().split("T")[0];
 const initialState: ServiceEnquiryState = {
   currentStep: 0,
   data: {
@@ -142,7 +142,7 @@ const initialState: ServiceEnquiryState = {
       serviceDate: "",
     },
     alignment: {
-      lastServiceDate: "",
+      lastServiceDate: today,
       complaint: "",
       inflationPressure: "NO",
     },
@@ -176,9 +176,9 @@ const initialState: ServiceEnquiryState = {
     },
     pusOperator: {
       tests: {
-        normalPUC: true,
+        normalPUC: false,
         engineWarmUp: false,
-        highRPM: true,
+        highRPM: false,
         idleRPM: false,
         certificatePrint: false,
       },

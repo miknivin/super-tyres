@@ -22,6 +22,18 @@ const ChecklistCard = ({
   progress,
 }: ChecklistCardProps) => {
   // Helper function with typed parameter
+  const getStatusbg = (status: string): string => {
+    switch (status) {
+      case "Pending":
+        return "bg-yellow-600";
+      case "Completed":
+        return "bg-green-600";
+      case "In Progress":
+        return "bg-blue-600";
+      default:
+        return "bg-gray-600";
+    }
+  };
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "Pending":
@@ -51,7 +63,7 @@ const ChecklistCard = ({
 
           {/* Status indicator */}
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+            <div className={`w-2 h-2 rounded-full ${getStatusbg(status)}`} />
             <span className={`text-sm font-medium ${getStatusColor(status)}`}>
               {status}
             </span>

@@ -34,6 +34,15 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("EngineWarmUp")
                         .HasColumnType("boolean");
 
@@ -55,10 +64,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("PucInspectionRecords");
                 });
@@ -78,6 +100,9 @@ namespace backend.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
@@ -120,6 +145,19 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
@@ -132,10 +170,23 @@ namespace backend.Migrations
                     b.Property<string>("TechnicianNotes")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("AlignmentChecklistRecords");
                 });
@@ -152,6 +203,15 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("InflationPressure")
                         .IsRequired()
                         .HasColumnType("text");
@@ -165,10 +225,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("AlignmentInspectionRecords");
                 });
@@ -182,14 +255,36 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("FinalRecheckDone")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("TechnicianNotes")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("WeightsFixedSecurely")
                         .HasColumnType("boolean");
@@ -199,8 +294,12 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("BalancingChecklistRecords");
                 });
@@ -216,6 +315,15 @@ namespace backend.Migrations
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<decimal?>("FrontLeftWeight")
                         .HasColumnType("numeric");
@@ -235,10 +343,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("BalancingInspectionRecords");
                 });
@@ -259,6 +380,15 @@ namespace backend.Migrations
                     b.Property<int?>("Condition")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -268,13 +398,26 @@ namespace backend.Migrations
                     b.Property<double>("SpecificGravity")
                         .HasColumnType("double precision");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<double>("Voltage")
                         .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("BatteryInspectionRecords");
                 });
@@ -288,6 +431,15 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("ExteriorWashed")
                         .HasColumnType("boolean");
 
@@ -297,16 +449,33 @@ namespace backend.Migrations
                     b.Property<bool>("NoWaterOnEngineElectrics")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("TechnicianNotes")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("CarWashChecklistRecords");
                 });
@@ -323,6 +492,15 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -333,10 +511,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("CarWashInspectionRecords");
                 });
@@ -354,6 +545,15 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<int?>("Level")
                         .HasColumnType("integer");
 
@@ -366,10 +566,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("OilInspectionRecords");
                 });
@@ -386,11 +599,24 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("EngineWarmed")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("ProbeInsertedCorrectly")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
@@ -398,10 +624,23 @@ namespace backend.Migrations
                     b.Property<string>("TechnicianNotes")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("PucChecklistRecords");
                 });
@@ -418,6 +657,12 @@ namespace backend.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CustomerAddress")
                         .HasColumnType("text");
@@ -449,6 +694,12 @@ namespace backend.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("VehicleName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -466,6 +717,10 @@ namespace backend.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.HasIndex("VehicleNo");
 
@@ -523,8 +778,21 @@ namespace backend.Migrations
                     b.Property<bool>("CorrectTyreSizeVerified")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("NoBeadSidewallDamage")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
@@ -532,13 +800,26 @@ namespace backend.Migrations
                     b.Property<string>("TechnicianNotes")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("WheelNutsTorqued")
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("TyreChecklistRecords");
                 });
@@ -551,6 +832,15 @@ namespace backend.Migrations
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CustomComplaint")
                         .HasColumnType("text");
@@ -574,10 +864,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("TyreInspectionRecords");
                 });
@@ -594,6 +897,15 @@ namespace backend.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -604,10 +916,23 @@ namespace backend.Migrations
                     b.Property<Guid>("ServiceEnquiryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ServiceEnquiryId")
                         .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("TyreRotationInspectionRecords");
                 });
@@ -666,7 +991,12 @@ namespace backend.Migrations
                     b.Property<DateTime>("AssignedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("AssignedById")
+                        .HasColumnType("uuid");
+
                     b.HasKey("UserId", "DesignationId");
+
+                    b.HasIndex("AssignedById");
 
                     b.HasIndex("DesignationId");
 
@@ -719,13 +1049,25 @@ namespace backend.Migrations
 
             modelBuilder.Entity("PucInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("PucInspection")
                         .HasForeignKey("PucInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Designation", b =>
@@ -740,101 +1082,224 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Operations.AlignmentChecklistRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("AlignmentChecklist")
                         .HasForeignKey("backend.Models.Operations.AlignmentChecklistRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.AlignmentInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("AlignmentInspection")
                         .HasForeignKey("backend.Models.Operations.AlignmentInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.BalancingChecklistRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("BalancingChecklist")
                         .HasForeignKey("backend.Models.Operations.BalancingChecklistRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.BalancingInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("BalancingInspection")
                         .HasForeignKey("backend.Models.Operations.BalancingInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.BatteryInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("BatteryInspection")
                         .HasForeignKey("backend.Models.Operations.BatteryInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.CarWashChecklistRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("CarWashChecklist")
                         .HasForeignKey("backend.Models.Operations.CarWashChecklistRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.CarWashInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("CarWashInspection")
                         .HasForeignKey("backend.Models.Operations.CarWashInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.OilInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("OilInspection")
                         .HasForeignKey("backend.Models.Operations.OilInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.PucChecklistRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("PucChecklist")
                         .HasForeignKey("backend.Models.Operations.PucChecklistRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("backend.Models.Operations.ServiceEnquiry", b =>
+                {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.ServiceEnquiryService", b =>
@@ -858,22 +1323,42 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Operations.TyreChecklistRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("TyreChecklist")
                         .HasForeignKey("backend.Models.Operations.TyreChecklistRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.TyreInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("TyreInspection")
                         .HasForeignKey("backend.Models.Operations.TyreInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
 
                     b.OwnsOne("backend.Models.Operations.TyreValues", "FrontLeft", b1 =>
                         {
@@ -963,6 +1448,8 @@ namespace backend.Migrations
                                 .HasForeignKey("TyreInspectionRecordId");
                         });
 
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("FrontLeft");
 
                     b.Navigation("FrontRight");
@@ -972,21 +1459,39 @@ namespace backend.Migrations
                     b.Navigation("RearRight");
 
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.Operations.TyreRotationInspectionRecord", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
                     b.HasOne("backend.Models.Operations.ServiceEnquiry", "ServiceEnquiry")
                         .WithOne("TyreRotationInspection")
                         .HasForeignKey("backend.Models.Operations.TyreRotationInspectionRecord", "ServiceEnquiryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.auth.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("ServiceEnquiry");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("backend.Models.UserDesignation", b =>
                 {
+                    b.HasOne("backend.Models.auth.User", "AssignedBy")
+                        .WithMany()
+                        .HasForeignKey("AssignedById");
+
                     b.HasOne("backend.Models.Designation", "Designation")
                         .WithMany("UserDesignations")
                         .HasForeignKey("DesignationId")
@@ -998,6 +1503,8 @@ namespace backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AssignedBy");
 
                     b.Navigation("Designation");
 

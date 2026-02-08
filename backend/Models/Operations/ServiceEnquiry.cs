@@ -1,6 +1,13 @@
 // Models/Operations/ServiceEnquiry.cs (main job card)
+using backend.Models.auth;
+
 namespace backend.Models.Operations;
 
+public enum ServiceEnquiryStatus
+{
+    Pending,   // default / initial state
+    Completed  // when all checklists/inspections are done and job is finished
+}
 public class ServiceEnquiry
 {
     public Guid Id { get; set; }
@@ -19,12 +26,14 @@ public class ServiceEnquiry
     public DateTime? ServiceDate { get; set; }
 
     // General
-    public string Status { get; set; } = "Pending";
+    public ServiceEnquiryStatus Status { get; set; } = ServiceEnquiryStatus.Pending;
     public string ComplaintNotes { get; set; } = string.Empty;
-
+    public Guid CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Guid? UpdatedBy { get; set; }    
     public DateTime? UpdatedAt { get; set; }
-
+    public User? CreatedByUser { get; set; }
+    public User? UpdatedByUser { get; set; }
     // Selected services (many-to-many)
     public ICollection<ServiceEnquiryService> SelectedServices { get; set; } = new List<ServiceEnquiryService>();
 

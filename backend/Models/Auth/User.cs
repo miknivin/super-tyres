@@ -11,7 +11,6 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
 
     public RoleType Role { get; set; } = RoleType.Employee;  // Default value – change as needed
-    // In User.cs (add this property)
     public ICollection<UserDesignation> UserDesignations { get; set; } = new List<UserDesignation>();
     public string EmployeeId { get; set; } = string.Empty;  // e.g. "EMP-001", "TECH-042"
 

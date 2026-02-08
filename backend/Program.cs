@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using backend.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,12 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
-    ));
+));
+
+builder.Services.AddControllers(opt =>
+{
+    opt.Filters.Add<RequireAuthenticatedUserFilter>();
+});
 
 // CORS - Allow frontend to send credentials (cookies)
 builder.Services.AddCors(options =>

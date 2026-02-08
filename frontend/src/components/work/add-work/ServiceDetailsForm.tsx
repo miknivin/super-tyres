@@ -85,8 +85,8 @@ export default function ServiceDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="mx-auto max-w-6xl">
+    <div className=" bg-gray-50 p-4">
+      <div className="mx-auto">
         {/* Back button */}
         <button
           onClick={handleBack}

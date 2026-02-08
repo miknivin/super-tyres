@@ -1,4 +1,4 @@
-import { Edit, SlidersHorizontal } from "lucide-react";
+import { Edit } from "lucide-react";
 
 export default function EmployeeProfile() {
   return (
@@ -32,68 +32,6 @@ export default function EmployeeProfile() {
         </div>
 
         {/* Today's Work Summary */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Today's Work Summary
-            </h3>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <SlidersHorizontal size={20} className="text-gray-600" />
-            </button>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Today's Jobs</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  8{" "}
-                  <span className="text-sm font-normal text-gray-500">
-                    Today's Jobs
-                  </span>
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Time Worked</p>
-                <p className="text-3xl font-bold text-gray-900">4h35m</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Vehicles Handled</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  4{" "}
-                  <span className="text-sm font-normal text-gray-500">
-                    Cars
-                  </span>
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Est. Service Value</p>
-                <p className="text-3xl font-bold text-gray-900">₹ 42,00</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Work Breakdown */}
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Work Breakdown
-          </h3>
-          <div className="flex gap-3">
-            <div className="flex-1 bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-              <span className="text-gray-700 font-medium">Tyre Inspection</span>
-              <span className="bg-teal-100 text-teal-700 font-semibold px-3 py-1 rounded-md">
-                6
-              </span>
-            </div>
-            <div className="flex-1 bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-              <span className="text-gray-700 font-medium">Alignment</span>
-              <span className="bg-teal-100 text-teal-700 font-semibold px-3 py-1 rounded-md">
-                2
-              </span>
-            </div>
-          </div>
-        </div>
 
         {/* Recent Work */}
         <div className="p-6">

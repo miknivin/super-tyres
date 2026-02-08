@@ -44,7 +44,7 @@ const serviceFormOrder = [
   "OIL_CHECK",
 ] as const;
 
-const stepComponents: Record<string, React.ComponentType<{ step?: string }>> = {
+const stepComponents: Record<string, React.ComponentType<{ step?: string, isViewOnly?: boolean,data?:any }>> = {
   customer: CustomerVehicleForm,
   services: ServiceDetailsForm,
   TYRE_INSPECT: TyreInspectionForm,
@@ -130,18 +130,35 @@ export default function ServiceEnquiryIndex() {
         selectedServices: formData.selectedServices,
 
         // Include inspection data only if service was selected
-        tyreInspection: selectedServices.includes("TYRE_INSPECT")
-          ? formData.tyreInspection
-          : undefined,
+        tyreInspection:
+          selectedServices.includes("TYRE_INSPECT") && formData.tyreInspection
+            ? {
+                selectedTyre: formData.tyreInspection.selectedTyre || null,
+                frontLeft: formData.tyreInspection.tyres.frontLeft || null,
+                frontRight: formData.tyreInspection.tyres.frontRight || null,
+                rearLeft: formData.tyreInspection.tyres.rearLeft || null,
+                rearRight: formData.tyreInspection.tyres.rearRight || null,
+                selectedComplaints:
+                  formData.tyreInspection.selectedComplaints || [],
+                customComplaint: formData.tyreInspection.customComplaint || "",
+              }
+            : undefined,
         tyreRotationInspection: selectedServices.includes("TYRE_ROT")
           ? formData.tyreRotation
           : undefined,
         alignmentInspection: selectedServices.includes("ALIGNMENT")
           ? formData.alignment
           : undefined,
-        balancingInspection: selectedServices.includes("BALANCING")
-          ? formData.balancing
-          : undefined,
+        balancingInspection:
+          selectedServices.includes("BALANCING") && formData.balancing
+            ? {
+                frontLeftWeight: formData.balancing.weights.frontLeft ?? null,
+                frontRightWeight: formData.balancing.weights.frontRight ?? null,
+                rearLeftWeight: formData.balancing.weights.rearLeft ?? null,
+                rearRightWeight: formData.balancing.weights.rearRight ?? null,
+                complaint: formData.balancing.complaint || "",
+              }
+            : undefined,
         carWashInspection: selectedServices.includes("CAR_WASH")
           ? formData.carWashing
           : undefined,

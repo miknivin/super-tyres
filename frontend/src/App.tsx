@@ -9,6 +9,7 @@ import AddWorkPage from "./pages/app-pages/AddWorkPage";
 import WorkAlertsListPage from "./pages/app-pages/WorkAlertPage";
 import UserProtectedRoute from "./components/ProtectedRoutes/UserProtectedRoute";
 import VehicleServiceAndChecklist from "./components/work/work-details";
+import ChecklistPage from "./pages/app-pages/ChecklistPage";
 
 export default function App() {
   return (
@@ -30,7 +31,7 @@ export default function App() {
           <Route path="/work" element={<WorkPage />} />
           <Route path="/work/add" element={<AddWorkPage />} />
           <Route path="/work/:id" element={<VehicleServiceAndChecklist />} />
-   
+          <Route path="/work/:id/:checklistType" element={<ChecklistPage />} />
           <Route path="/profile" element={<EmployeeProfile />} />
           <Route path="/work-alerts" element={<WorkAlertsListPage />} />
         </Route>

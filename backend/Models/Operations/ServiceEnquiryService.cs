@@ -32,13 +32,7 @@ public class ServiceEnquiryService
     /// </summary>
     public string? Notes { get; set; }
 
-    /// <summary>
-    /// When this service entry was created
-    /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    /// <summary>
-    /// When this service entry was last updated
-    /// </summary>
     public DateTime? UpdatedAt { get; set; }
 }

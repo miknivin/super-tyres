@@ -86,7 +86,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ServiceEnquiry>()
         .HasIndex(e => e.VehicleNo)
         .IsUnique(false); // non-unique, multiple enquiries per vehicle are normal
-
+        modelBuilder.Entity<ServiceEnquiry>()
+        .Property(e => e.Status)
+        .HasConversion<string>();
         modelBuilder.Entity<ServiceEnquiryService>()
             .HasOne(es => es.ServiceEnquiry)
             .WithMany(e => e.SelectedServices)

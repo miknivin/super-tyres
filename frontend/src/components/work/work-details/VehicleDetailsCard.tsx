@@ -16,7 +16,7 @@ const VehicleDetailsCard = ({
   name,
   phone,
   distance,
-  step,
+
   status,
 }: VehicleDetailsCardProps) => {
   return (
@@ -46,7 +46,7 @@ const VehicleDetailsCard = ({
           </div>
 
           <p className="text-gray-500 text-sm">{distance}</p>
-          <p className="text-gray-500 text-sm mt-2">Step {step}</p>
+          {/* <p className="text-gray-500 text-sm mt-2">Step {step}</p> */}
         </div>
 
         {/* Status badge */}

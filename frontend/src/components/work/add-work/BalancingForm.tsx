@@ -55,7 +55,7 @@ export default function BalancingForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className=" bg-gray-50 p-6">
       <div className="mx-auto max-w-3xl">
         {/* Back Button */}
         <button

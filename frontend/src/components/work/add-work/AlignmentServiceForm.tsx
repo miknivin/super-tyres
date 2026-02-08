@@ -1,12 +1,12 @@
 // src/components/work/add-work/AlignmentServiceForm.tsx
-
 import { Calendar, ChevronLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "../../../redux/store"; // ← adjust path if needed
+import { useEffect } from "react"; // ← add this
+import type { RootState } from "../../../redux/store";
 import {
   goToStep,
   updateAlignment,
-} from "../../../redux/slices/serviceEnquiryFormSlice"; // ← adjust path
+} from "../../../redux/slices/serviceEnquiryFormSlice";
 
 export default function AlignmentServiceForm() {
   const dispatch = useDispatch();
@@ -16,10 +16,18 @@ export default function AlignmentServiceForm() {
     (state: RootState) => state.serviceEnquiry.data.alignment,
   );
 
+  // Automatically set today's date if lastServiceDate is empty
+  useEffect(() => {
+    if (!lastServiceDate) {
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+      dispatch(updateAlignment({ lastServiceDate: today }));
+    }
+  }, [lastServiceDate, dispatch]); // only re-run if lastServiceDate changes
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto ">
-        {/* Back Button – optional (ServiceLayout usually handles this) */}
+    <div className=" bg-gray-50 p-6">
+      <div className="mx-auto">
+        {/* Back Button */}
         <button
           onClick={() => dispatch(goToStep(1))}
           className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6 transition-colors"
@@ -42,7 +50,7 @@ export default function AlignmentServiceForm() {
             <div className="relative">
               <input
                 type="date"
-                value={lastServiceDate}
+                value={lastServiceDate || ""} // fallback to empty string if null/undefined
                 onChange={(e) =>
                   dispatch(updateAlignment({ lastServiceDate: e.target.value }))
                 }
@@ -101,8 +109,6 @@ export default function AlignmentServiceForm() {
             </button>
           </div>
         </div>
-
-        {/* No Back/Next buttons here – handled by ServiceLayout */}
       </div>
     </div>
   );

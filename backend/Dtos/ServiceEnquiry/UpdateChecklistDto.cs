@@ -1,54 +1,44 @@
 namespace backend.Dtos.ServiceEnquiry;
-
-public record UpdateChecklistDto
+// Base update DTO – common fields for all checklists
+public class UpdateChecklistDto
 {
-    public Guid ServiceEnquiryId { get; init; }
-
-    // Send only one checklist type at a time
-    public TyreChecklistDataDto? TyreChecklist { get; init; }
-    public AlignmentChecklistDataDto? AlignmentChecklist { get; init; }
-    public BalancingChecklistDataDto? BalancingChecklist { get; init; }
-    public PucChecklistDataDto? PucChecklist { get; init; }
-    public CarWashChecklistDataDto? CarWashChecklist { get; init; }
+    public string? TechnicianNotes { get; set; }
+    public DateTime? CompletedAt { get; set; } = DateTime.UtcNow; // auto-set if not provided
 }
 
-public record TyreChecklistDataDto
+// Specific checklist update DTOs (add fields you want to update)
+public class UpdateTyreChecklistDto : UpdateChecklistDto
 {
-    public bool CorrectTyreSizeVerified { get; init; }
-    public bool NoBeadSidewallDamage { get; init; }
-    public bool CorrectInflation { get; init; }
-    public bool WheelNutsTorqued { get; init; }
-    public string? TechnicianNotes { get; init; }
+    public bool? CorrectTyreSizeVerified { get; set; }
+    public bool? NoBeadSidewallDamage { get; set; }
+    public bool? CorrectInflation { get; set; }
+    public bool? WheelNutsTorqued { get; set; }
 }
 
-public record AlignmentChecklistDataDto
+public class UpdateAlignmentChecklistDto : UpdateChecklistDto
 {
-    public bool SuspensionChecked { get; init; }
-    public bool SteeringCentered { get; init; }
-    public bool BeforeAfterReportPrinted { get; init; }
-    public string? TechnicianNotes { get; init; }
+    public bool? SuspensionChecked { get; set; }
+    public bool? SteeringCentered { get; set; }
+    public bool? BeforeAfterReportPrinted { get; set; }
 }
 
-public record BalancingChecklistDataDto
+public class UpdateBalancingChecklistDto : UpdateChecklistDto
 {
-    public bool WheelCleaned { get; init; }
-    public bool WeightsFixedSecurely { get; init; }
-    public bool FinalRecheckDone { get; init; }
-    public string? TechnicianNotes { get; init; }
+    public bool? WheelCleaned { get; set; }
+    public bool? WeightsFixedSecurely { get; set; }
+    public bool? FinalRecheckDone { get; set; }
 }
 
-public record PucChecklistDataDto
+public class UpdatePucChecklistDto : UpdateChecklistDto
 {
-    public bool EngineWarmed { get; init; }
-    public bool ProbeInsertedCorrectly { get; init; }
-    public bool CertificatePrintedAndUploaded { get; init; }
-    public string? TechnicianNotes { get; init; }
+    public bool? EngineWarmed { get; set; }
+    public bool? ProbeInsertedCorrectly { get; set; }
+    public bool? CertificatePrintedAndUploaded { get; set; }
 }
 
-public record CarWashChecklistDataDto
+public class UpdateCarWashChecklistDto : UpdateChecklistDto
 {
-    public bool ExteriorWashed { get; init; }
-    public bool InteriorVacuumed { get; init; }
-    public bool NoWaterOnEngineElectrics { get; init; }
-    public string? TechnicianNotes { get; init; }
+    public bool? ExteriorWashed { get; set; }
+    public bool? InteriorVacuumed { get; set; }
+    public bool? NoWaterOnEngineElectrics { get; set; }
 }

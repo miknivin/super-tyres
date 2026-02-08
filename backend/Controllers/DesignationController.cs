@@ -4,6 +4,7 @@ using backend.Data;
 using backend.Models;
 using backend.Dtos;
 using backend.Dtos.Designations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
@@ -18,10 +19,19 @@ public class DesignationController : ControllerBase
         _context = context;
     }
 
-  [HttpGet]
+[HttpGet]
+[Authorize]  // your filter will run and populate HttpContext.Items["UserId"]
 public async Task<ActionResult<IEnumerable<DesignationResponseDto>>> GetDesignations()
 {
-    var designations = await _context.Designations
+    // 1. Get current authenticated user's ID from the filter
+    if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) ||
+        userIdObj is not Guid userId)
+    {
+        return Unauthorized(new { message = "User not authenticated" });
+    }
+
+    // 2. Get all active designations with their service name
+    var designationsQuery = _context.Designations
         .Where(d => d.IsActive)
         .Select(d => new DesignationResponseDto
         {
@@ -33,14 +43,29 @@ public async Task<ActionResult<IEnumerable<DesignationResponseDto>>> GetDesignat
             ServiceName = d.Service != null ? d.Service.Name : null,
             IsActive = d.IsActive,
             CreatedAt = d.CreatedAt,
-            UpdatedAt = d.UpdatedAt
+            ImageUrl = d.ImageUrl,
+            UpdatedAt = d.UpdatedAt,
+            IsAssigned = false
         })
-        .OrderBy(d => d.Name)
+        .OrderBy(d => d.Name);
+
+    // 3. Execute the base query first (get list of DTOs)
+    var designationDtos = await designationsQuery.ToListAsync();
+
+    // 4. Get all designation IDs that are currently assigned to this user
+    var assignedDesignationIds = await _context.UserDesignations
+        .Where(ud => ud.UserId == userId)
+        .Select(ud => ud.DesignationId)
         .ToListAsync();
 
-    return Ok(designations);
-}
+    // 5. Mark which ones are assigned
+    foreach (var dto in designationDtos)
+    {
+        dto.IsAssigned = assignedDesignationIds.Contains(dto.Id);
+    }
 
+    return Ok(designationDtos);
+}
    [HttpGet("{id}")]
     public async Task<ActionResult<DesignationResponseDto>> GetDesignation(Guid id)
     {

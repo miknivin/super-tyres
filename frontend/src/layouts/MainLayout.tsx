@@ -50,7 +50,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </main>
 
       {/* Fixed bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] z-50 flex items-center justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t overflow-y-hidden border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] z-50 flex items-center justify-around max-h-20">
         {/* Home */}
         <NavLink
           to="/"

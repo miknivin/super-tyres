@@ -1,3 +1,5 @@
+using backend.Models.auth;
+
 namespace backend.Models.Operations;
 
 // Enum for tyre positions (matches your frontend TyrePosition type)
@@ -43,5 +45,14 @@ public class TyreInspectionRecord
 
     // General
     public string? Notes { get; set; }                  // technician notes
-    public DateTime? CompletedAt { get; set; }          // when inspection was finished
+    public DateTime? CompletedAt { get; set; }  
+
+      public Guid CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public Guid? UpdatedBy { get; set; }          // nullable
+    public DateTime? UpdatedAt { get; set; }      // nullable
+
+    public User? CreatedByUser { get; set; }
+    public User? UpdatedByUser { get; set; }
 }

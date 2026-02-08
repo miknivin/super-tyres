@@ -1,131 +1,192 @@
-import React, { useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
-import InfoCard from '../../../shared/InfoCard';
+// src/components/checklists/PUCOperatorChecklist.tsx
+import React from "react";
+import { ChevronLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import InfoCard from "../../../shared/InfoCard";
+import { useChecklistForm } from "../../../../hooks/useChecklistForm";
 
-interface ChecklistItems {
+// Type for this checklist's items
+interface PUCChecklistItems {
   engineWarmed: boolean;
   probeInsertedCorrectly: boolean;
-  certificatePrintedUploaded: boolean;
+  certificatePrintedAndUploaded: boolean;
 }
 
-const PUCOperatorChecklist: React.FC = () => {
-  // Vehicle data
-  const vehicleData = {
-    vehicleNumber: "KL 57 M 8478",
-    customerName: "Mrshad",
-    phoneNumber: "+91 987 312 345",
-    distance: "23.5609 km",
-    status: "Awaiting approval",
-    currentStep: 3,
-    totalSteps: 5
-  };
+// Props from parent
+interface PUCOperatorChecklistProps {
+  enquiryId: string;
+}
 
-  const [checklistItems, setChecklistItems] = useState<ChecklistItems>({
-    engineWarmed: false,
-    probeInsertedCorrectly: false,
-    certificatePrintedUploaded: false
+const PUCOperatorChecklist: React.FC<PUCOperatorChecklistProps> = ({
+  enquiryId,
+}) => {
+  const {
+    formState,
+    technicianNotes,
+    setTechnicianNotes,
+    toggleItem,
+    submitChecklist,
+    isSubmitting,
+    isChecklistLoading,
+    isEnquiryLoading,
+    isEnquiryError,
+    enquiry,
+  } = useChecklistForm<PUCChecklistItems>({
+    enquiryId,
+    checklistType: "puc-operator-checklist",
+
+    initialState: {
+      engineWarmed: false,
+      probeInsertedCorrectly: false,
+      certificatePrintedAndUploaded: false,
+    },
+
+    fieldMapping: {
+      engineWarmed: "engineWarmed",
+      probeInsertedCorrectly: "probeInsertedCorrectly",
+      certificatePrintedAndUploaded: "certificatePrintedAndUploaded",
+    },
+
+    onSuccessNavigate: true,
   });
-  
-  const [complaints, setComplaints] = useState<string>('');
 
-  const toggleItem = (item: keyof ChecklistItems) => {
-    setChecklistItems(prev => ({
-      ...prev,
-      [item]: !prev[item]
-    }));
-  };
+  // Unified loading state (enquiry OR checklist)
+  if (isEnquiryLoading || isChecklistLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+        <div className="text-gray-600">Loading PUC details...</div>
+      </div>
+    );
+  }
+
+  // Unified error state
+  if (isEnquiryError) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+        <div className="text-red-600 text-center">
+          Failed to load PUC details
+        </div>
+      </div>
+    );
+  }
+
+  // No data guard (if enquiry is null after loading)
+  if (!enquiry) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <ChevronLeft className="w-5 h-5 text-teal-600 mr-2" />
-          <span className="text-teal-600 text-sm font-medium">PUC Operator Checklist</span>
-        </div>
+      <div className="max-w-3xl mx-auto">
+        {/* Back link */}
+        <Link
+          to={`/work/${enquiryId}`}
+          className="flex items-center mb-6 text-teal-600 hover:text-teal-700"
+        >
+          <ChevronLeft className="w-5 h-5 mr-2" />
+          <span className="text-sm font-medium">Back to Enquiry</span>
+        </Link>
 
-        {/* Info Card */}
+        {/* Vehicle info – now comes from hook */}
         <InfoCard
-          vehicleNumber={vehicleData.vehicleNumber}
-          customerName={vehicleData.customerName}
-          phoneNumber={vehicleData.phoneNumber}
-          distance={vehicleData.distance}
-          status={vehicleData.status}
-          currentStep={vehicleData.currentStep}
-          totalSteps={vehicleData.totalSteps}
+          vehicleNumber={enquiry.vehicleNo}
+          customerName={enquiry.customerName}
+          phoneNumber={enquiry.customerPhone}
+          distance={enquiry.odometer ? `${enquiry.odometer} km` : "N/A"}
+          status={enquiry.status}
+          currentStep={3}
+          totalSteps={5}
         />
 
-        {/* Checklist Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        {/* Checklist section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
           <h2 className="text-center text-gray-900 font-semibold text-lg mb-6">
             PUC Operator Checklist
           </h2>
 
-          {/* Checklist Items */}
+          {/* Toggle switches */}
           <div className="space-y-4 mb-6">
             <div className="flex items-center justify-between">
               <span className="text-gray-700 text-sm">Engine Warmed</span>
               <button
-                onClick={() => toggleItem('engineWarmed')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  checklistItems.engineWarmed ? 'bg-teal-600' : 'bg-gray-300'
+                type="button"
+                onClick={() => toggleItem("engineWarmed")}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  formState.engineWarmed ? "bg-teal-600" : "bg-gray-300"
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    checklistItems.engineWarmed ? 'translate-x-6' : 'translate-x-1'
+                    formState.engineWarmed ? "translate-x-6" : "translate-x-1"
                   }`}
                 />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-gray-700 text-sm">Probe inserted Correctly</span>
+              <span className="text-gray-700 text-sm">
+                Probe inserted Correctly
+              </span>
               <button
-                onClick={() => toggleItem('probeInsertedCorrectly')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  checklistItems.probeInsertedCorrectly ? 'bg-teal-600' : 'bg-gray-300'
+                type="button"
+                onClick={() => toggleItem("probeInsertedCorrectly")}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  formState.probeInsertedCorrectly
+                    ? "bg-teal-600"
+                    : "bg-gray-300"
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    checklistItems.probeInsertedCorrectly ? 'translate-x-6' : 'translate-x-1'
+                    formState.probeInsertedCorrectly
+                      ? "translate-x-6"
+                      : "translate-x-1"
                   }`}
                 />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-gray-700 text-sm">Certificate Printed & Uploaded</span>
+              <span className="text-gray-700 text-sm">
+                Certificate Printed & Uploaded
+              </span>
               <button
-                onClick={() => toggleItem('certificatePrintedUploaded')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  checklistItems.certificatePrintedUploaded ? 'bg-teal-600' : 'bg-gray-300'
+                type="button"
+                onClick={() => toggleItem("certificatePrintedAndUploaded")}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  formState.certificatePrintedAndUploaded
+                    ? "bg-teal-600"
+                    : "bg-gray-300"
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    checklistItems.certificatePrintedUploaded ? 'translate-x-6' : 'translate-x-1'
+                    formState.certificatePrintedAndUploaded
+                      ? "translate-x-6"
+                      : "translate-x-1"
                   }`}
                 />
               </button>
             </div>
           </div>
 
-          {/* Complaints Input */}
+          {/* Complaints textarea */}
           <div className="mb-6">
             <textarea
-              value={complaints}
-              onChange={(e) => setComplaints(e.target.value)}
-              placeholder="Enter complaint/s"
+              value={technicianNotes}
+              onChange={(e) => setTechnicianNotes(e.target.value)}
+              placeholder="Enter complaint/s..."
               className="w-full px-4 py-3 text-sm text-gray-700 placeholder-gray-400 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
               rows={3}
             />
           </div>
 
-          {/* Confirm Button */}
-          <button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 rounded-lg transition-colors">
-            Confirmed
+          {/* Submit button */}
+          <button
+            type="button"
+            onClick={submitChecklist}
+            disabled={isSubmitting}
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Saving..." : "Confirm"}
           </button>
         </div>
       </div>

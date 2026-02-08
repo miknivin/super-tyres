@@ -1,6 +1,6 @@
 // src/components/work/add-work/ComplaintSummaryPage.tsx
 import { useState } from "react";
-import { Check, ChevronRight, MoreVertical } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../redux/store";
 import Modal from "../../ui/Modal";
@@ -117,8 +117,8 @@ export default function ComplaintSummaryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="bg-gray-50">
+      <div className=" mx-auto">
         {/* Success Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-20 h-20 bg-teal-600 rounded-full flex items-center justify-center shadow-lg">
@@ -137,9 +137,9 @@ export default function ComplaintSummaryPage() {
             <h2 className="text-xl font-bold text-gray-900">
               {customer.vehicleNo || "Vehicle Number Not Set"}
             </h2>
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            {/* <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <MoreVertical size={20} className="text-gray-600" />
-            </button>
+            </button> */}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

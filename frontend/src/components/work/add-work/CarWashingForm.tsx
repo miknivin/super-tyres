@@ -33,7 +33,7 @@ export default function CarWashingForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className=" bg-gray-50 p-6">
       <div className="mx-auto">
         {/* Back Button – optional (ServiceLayout usually handles navigation) */}
         <button onClick={() => dispatch(goToStep(1))} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6 transition-colors">

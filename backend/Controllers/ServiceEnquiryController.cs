@@ -4,6 +4,9 @@ using backend.Data;
 using backend.Models.Operations;
 using backend.Dtos.ServiceEnquiry;
 using backend.Dtos;
+using backend.Models.auth;
+using backend.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
@@ -18,7 +21,10 @@ public class ServiceEnquiryController(AppDbContext context) : ControllerBase
 [HttpPost]
 public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEnquiryDto dto)
 {
-    // 1. Create enquiry entity
+   if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not Guid userId)
+    {
+        return Unauthorized("User not authenticated");
+    }
     var enquiry = new ServiceEnquiry
     {
         CustomerName = dto.CustomerName,
@@ -33,8 +39,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
         VehicleType = dto.VehicleType,
         ServiceDate = dto.ServiceDate,
         ComplaintNotes = dto.ComplaintNotes,
-        Status = "Pending",
-        CreatedAt = DateTime.UtcNow
+        Status = ServiceEnquiryStatus.Pending,
+        CreatedAt = DateTime.UtcNow,
+        CreatedBy = userId
     };
 
     // 2. Load all services in ONE query
@@ -83,7 +90,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     CustomComplaint = dto.TyreInspection.CustomComplaint,
                     RotationType = dto.TyreInspection.RotationType,
                     RotationComplaint = dto.TyreInspection.RotationComplaint,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -93,7 +102,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     ServiceEnquiry = enquiry,
                     RotationType = dto.TyreRotationInspection.RotationType,
                     Complaint = dto.TyreRotationInspection.Complaint,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -104,7 +115,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     LastServiceDate = dto.AlignmentInspection.LastServiceDate,
                     Complaint = dto.AlignmentInspection.Complaint,
                     InflationPressure = dto.AlignmentInspection.InflationPressure,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -117,7 +130,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     RearLeftWeight = dto.BalancingInspection.RearLeftWeight,
                     RearRightWeight = dto.BalancingInspection.RearRightWeight,
                     Complaint = dto.BalancingInspection.Complaint,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -127,7 +142,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     ServiceEnquiry = enquiry,
                     SelectedServices = dto.CarWashInspection.SelectedServices ?? Array.Empty<string>(),
                     Complaint = dto.CarWashInspection.Complaint,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -141,7 +158,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     IdleRPM = dto.PucInspection.IdleRPM,
                     CertificatePrint = dto.PucInspection.CertificatePrint,
                     FuelType = dto.PucInspection.FuelType,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -153,7 +172,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     Voltage = dto.BatteryInspection.Voltage,
                     SpecificGravity = dto.BatteryInspection.SpecificGravity,
                     Complaint = dto.BatteryInspection.Complaint,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
 
@@ -164,7 +185,9 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
                     Quality = Enum.TryParse<OilQuality>(dto.OilInspection.Quality, true, out var qual) ? qual : null,
                     Level = Enum.TryParse<OilLevel>(dto.OilInspection.Level, true, out var lvl) ? lvl : null,
                     Complaint = dto.OilInspection.Complaint,
-                    CompletedAt = DateTime.UtcNow
+                    CompletedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
                 });
                 break;
         }
@@ -206,7 +229,7 @@ public async Task<IActionResult> CreateServiceEnquiry([FromBody] CreateServiceEn
     ServiceDate = savedEnquiry.ServiceDate,
 
     ComplaintNotes = savedEnquiry.ComplaintNotes,
-    Status = savedEnquiry.Status,
+    Status = ServiceEnquiryStatus.Pending.ToString(),
 
     CreatedAt = savedEnquiry.CreatedAt,
     UpdatedAt = savedEnquiry.UpdatedAt,
@@ -455,67 +478,112 @@ public async Task<IActionResult> GetServiceEnquiryChecklists(Guid id)
 
     return Ok(response);
 }
-    // GET: Fetch full enquiry with all data
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetServiceEnquiry(Guid id)
+
+[HttpGet("{id}")]
+public async Task<ActionResult<ServiceEnquiryBasicResponseDto>> GetServiceEnquiry(Guid id)
+{
+    var enquiry = await _context.ServiceEnquiries
+        .AsNoTracking() // performance: read-only, no tracking overhead
+        .Where(e => e.Id == id)
+        .Select(e => new ServiceEnquiryBasicResponseDto
+        {
+            Id = e.Id,
+
+            // Customer
+            CustomerName = e.CustomerName,
+            CustomerPhone = e.CustomerPhone,
+            CustomerAddress = e.CustomerAddress,
+            CustomerCity = e.CustomerCity,
+            PinCode = e.PinCode,
+
+            // Vehicle
+            VehicleName = e.VehicleName,
+            VehicleNo = e.VehicleNo,
+            Odometer = e.Odometer,
+            Wheel = e.Wheel,
+            VehicleType = e.VehicleType,
+
+            // Service info
+            ServiceDate = e.ServiceDate,
+            Status = e.Status.ToString(),
+            CreatedAt = e.CreatedAt,
+
+            SelectedServices = e.SelectedServices
+                .OrderBy(s => s.ExecutionOrder)
+                .Select(s => new ServiceEnquiryServiceBasicResponseDto
+                {
+                    ServiceCode = s.Service.Code,     // e.g. "TYRE_INSPECT"
+                    ServiceName = s.Service.Name      // e.g. "Tyre Inspection"
+                })
+                .ToList()
+        })
+        .FirstOrDefaultAsync();
+
+    if (enquiry == null)
     {
-        var enquiry = await _context.ServiceEnquiries
-            .Include(e => e.SelectedServices).ThenInclude(es => es.Service)
-            .Include(e => e.TyreChecklist)
-            .Include(e => e.TyreInspection)
-            .Include(e => e.AlignmentChecklist)
-            .Include(e => e.AlignmentInspection)
-            .Include(e => e.BalancingChecklist)
-            .Include(e => e.BalancingInspection)
-            .Include(e => e.PucChecklist)
-            .Include(e => e.PucInspection)
-            .Include(e => e.CarWashChecklist)
-            .Include(e => e.CarWashInspection)
-            .Include(e => e.BatteryInspection)
-            .Include(e => e.OilInspection)
-            .FirstOrDefaultAsync(e => e.Id == id);
-
-        if (enquiry == null) return NotFound();
-
-        // Map to response DTO (implement mapping logic here or use AutoMapper)
-        return Ok(enquiry);
+        return NotFound();
     }
 
-    [HttpGet("recent")]
-    public async Task<IActionResult> GetRecentServices(
-        [FromQuery] string vehicleNo,
-        [FromQuery] int take = 10)
-    {
-        if (string.IsNullOrWhiteSpace(vehicleNo))
-            return BadRequest("Vehicle number is required");
+    return Ok(enquiry);
+}
 
-        if (take < 1 || take > 50)
-            return BadRequest("Take must be between 1 and 50");
+[HttpGet("recent")]
+public async Task<IActionResult> GetRecentServices(
+    [FromQuery] string vehicleNo,
+    [FromQuery] int take = 10)
+{
+    if (string.IsNullOrWhiteSpace(vehicleNo))
+        return BadRequest("Vehicle number is required");
 
-        var recentEnquiries = await _context.ServiceEnquiries
-            .AsNoTracking()
-            .Where(e => EF.Functions.ILike(e.VehicleNo, $"%{vehicleNo.Trim()}%")) // case-insensitive partial match
-            .OrderByDescending(e => e.CreatedAt) // or e.ServiceDate if preferred
-            .Take(take)
-            .Select(e => new
-            {
-                EnquiryId       = e.Id,
-                VehicleNo       = e.VehicleNo,
-                CustomerName    = e.CustomerName,
-                Status          = e.Status,
-                CreatedAt       = e.CreatedAt,
-                ServiceDate     = e.ServiceDate,
-                Odometer        = e.Odometer,
-                SelectedServices = e.SelectedServices.Select(es => es.Service.Name).ToList(),
-                ComplaintNotes  = e.ComplaintNotes
-            })
-            .ToListAsync();
+    if (take < 1 || take > 50)
+        return BadRequest("Take must be between 1 and 50");
 
-        return Ok(recentEnquiries);
-    }
+    // Normalize input: remove ALL common whitespace
+    var normalizedVehicleNo = vehicleNo
+        .Trim()
+        .Replace(" ", "")
+        .Replace("\u00A0", "") // non-breaking space
+        .Replace("\t", "")
+        .Replace("\n", "")
+        .Replace("\r", "")
+        .ToUpper();
 
+    var recentEnquiries = await _context.ServiceEnquiries
+        .AsNoTracking()
+        .Where(e =>
+            EF.Functions.ILike(
+                e.VehicleNo
+                    .Replace(" ", "")
+                    .Replace("\u00A0", "")
+                    .Replace("\t", "")
+                    .Replace("\n", "")
+                    .Replace("\r", "")
+                    .ToUpper(),
+                $"%{normalizedVehicleNo}%"
+            )
+        )
+        .OrderByDescending(e => e.CreatedAt)
+        .Take(take)
+        .Select(e => new
+        {
+            EnquiryId = e.Id,
+            VehicleNo = e.VehicleNo,
+            CustomerName = e.CustomerName,
+            Status = e.Status,
+            CreatedAt = e.CreatedAt,
+            ServiceDate = e.ServiceDate,
+            Odometer = e.Odometer,
+            SelectedServices = e.SelectedServices
+                .Select(es => es.Service.Name)
+                .ToList(),
+            ComplaintNotes = e.ComplaintNotes
+        })
+        .ToListAsync();
+
+    return Ok(recentEnquiries);
+}
     // GET: api/service-enquiry
-[HttpGet]
+
 [HttpGet]
 public async Task<ActionResult<IEnumerable<ServiceEnquiryResponseDto>>> GetAllServiceEnquiries()
 {
@@ -541,7 +609,7 @@ public async Task<ActionResult<IEnumerable<ServiceEnquiryResponseDto>>> GetAllSe
         VehicleType = e.VehicleType,
         ServiceDate = e.ServiceDate,
         ComplaintNotes = e.ComplaintNotes,
-        Status = e.Status,
+        Status = e.Status.ToString(),
         CreatedAt = e.CreatedAt,
         UpdatedAt = e.UpdatedAt,
 
@@ -557,4 +625,601 @@ public async Task<ActionResult<IEnumerable<ServiceEnquiryResponseDto>>> GetAllSe
 
     return Ok(response);
 }
+
+
+// ────────────────────────────────────────────────
+// TYRE CHECKLIST - Upsert
+// ────────────────────────────────────────────────
+[HttpPut("{enquiryId}/checklists/tyre-technician-checklist")]
+public async Task<IActionResult> UpsertTyreChecklist(
+    Guid enquiryId,
+    [FromBody] UpdateTyreChecklistDto dto)
+{
+    var enquiry = await _context.ServiceEnquiries
+        .Include(e => e.TyreChecklist)
+        .FirstOrDefaultAsync(e => e.Id == enquiryId);
+
+    if (enquiry == null)
+        return NotFound("Service enquiry not found");
+
+    if (enquiry.TyreChecklist == null)
+    {
+        // CREATE
+        var newRecord = new TyreChecklistRecord
+        {
+            Id = Guid.NewGuid(),
+            ServiceEnquiryId = enquiryId,
+            CorrectTyreSizeVerified = dto.CorrectTyreSizeVerified ?? false,
+            NoBeadSidewallDamage = dto.NoBeadSidewallDamage ?? false,
+            CorrectInflation = dto.CorrectInflation ?? false,
+            WheelNutsTorqued = dto.WheelNutsTorqued ?? false,
+            TechnicianNotes = dto.TechnicianNotes,
+            CompletedAt = dto.CompletedAt ?? DateTime.UtcNow
+        };
+
+        enquiry.TyreChecklist = newRecord;
+        _context.TyreChecklistRecords.Add(newRecord);
+
+        await _context.SaveChangesAsync();
+        return Created($"/api/service-enquiry/{enquiryId}/checklists/tyre-technician-checklist", null);
+    }
+    else
+    {
+        // UPDATE - partial
+        if (dto.CorrectTyreSizeVerified.HasValue)
+            enquiry.TyreChecklist.CorrectTyreSizeVerified = dto.CorrectTyreSizeVerified.Value;
+
+        if (dto.NoBeadSidewallDamage.HasValue)
+            enquiry.TyreChecklist.NoBeadSidewallDamage = dto.NoBeadSidewallDamage.Value;
+
+        if (dto.CorrectInflation.HasValue)
+            enquiry.TyreChecklist.CorrectInflation = dto.CorrectInflation.Value;
+
+        if (dto.WheelNutsTorqued.HasValue)
+            enquiry.TyreChecklist.WheelNutsTorqued = dto.WheelNutsTorqued.Value;
+
+        if (dto.TechnicianNotes != null)
+            enquiry.TyreChecklist.TechnicianNotes = dto.TechnicianNotes;
+
+        if (dto.CompletedAt.HasValue)
+            enquiry.TyreChecklist.CompletedAt = dto.CompletedAt.Value;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}
+
+// ────────────────────────────────────────────────
+// ALIGNMENT CHECKLIST - Upsert
+// ────────────────────────────────────────────────
+[HttpPut("{enquiryId}/checklists/alignment-technician-checklist")]
+public async Task<IActionResult> UpsertAlignmentChecklist(
+    Guid enquiryId,
+    [FromBody] UpdateAlignmentChecklistDto dto)
+{
+    var enquiry = await _context.ServiceEnquiries
+        .Include(e => e.AlignmentChecklist)
+        .FirstOrDefaultAsync(e => e.Id == enquiryId);
+
+    if (enquiry == null)
+        return NotFound("Service enquiry not found");
+
+    if (enquiry.AlignmentChecklist == null)
+    {
+        var newRecord = new AlignmentChecklistRecord
+        {
+            Id = Guid.NewGuid(),
+            ServiceEnquiryId = enquiryId,
+            SuspensionChecked = dto.SuspensionChecked ?? false,
+            SteeringCentered = dto.SteeringCentered ?? false,
+            BeforeAfterReportPrinted = dto.BeforeAfterReportPrinted ?? false,
+            TechnicianNotes = dto.TechnicianNotes,
+            CompletedAt = dto.CompletedAt ?? DateTime.UtcNow
+        };
+
+        enquiry.AlignmentChecklist = newRecord;
+        _context.AlignmentChecklistRecords.Add(newRecord);
+
+        await _context.SaveChangesAsync();
+        return Created($"/api/service-enquiry/{enquiryId}/checklists/alignment-technician-checklist", null);
+    }
+    else
+    {
+        if (dto.SuspensionChecked.HasValue)
+            enquiry.AlignmentChecklist.SuspensionChecked = dto.SuspensionChecked.Value;
+
+        if (dto.SteeringCentered.HasValue)
+            enquiry.AlignmentChecklist.SteeringCentered = dto.SteeringCentered.Value;
+
+        if (dto.BeforeAfterReportPrinted.HasValue)
+            enquiry.AlignmentChecklist.BeforeAfterReportPrinted = dto.BeforeAfterReportPrinted.Value;
+
+        if (dto.TechnicianNotes != null)
+            enquiry.AlignmentChecklist.TechnicianNotes = dto.TechnicianNotes;
+
+        if (dto.CompletedAt.HasValue)
+            enquiry.AlignmentChecklist.CompletedAt = dto.CompletedAt.Value;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}
+
+// ────────────────────────────────────────────────
+// BALANCING CHECKLIST - Upsert
+// ────────────────────────────────────────────────
+[HttpPut("{enquiryId}/checklists/balancing-technician-checklist")]
+public async Task<IActionResult> UpsertBalancingChecklist(
+    Guid enquiryId,
+    [FromBody] UpdateBalancingChecklistDto dto)
+{
+    var enquiry = await _context.ServiceEnquiries
+        .Include(e => e.BalancingChecklist)
+        .FirstOrDefaultAsync(e => e.Id == enquiryId);
+
+    if (enquiry == null)
+        return NotFound("Service enquiry not found");
+
+    if (enquiry.BalancingChecklist == null)
+    {
+        var newRecord = new BalancingChecklistRecord
+        {
+            Id = Guid.NewGuid(),
+            ServiceEnquiryId = enquiryId,
+            WheelCleaned = dto.WheelCleaned ?? false,
+            WeightsFixedSecurely = dto.WeightsFixedSecurely ?? false,
+            FinalRecheckDone = dto.FinalRecheckDone ?? false,
+            TechnicianNotes = dto.TechnicianNotes,
+            CompletedAt = dto.CompletedAt ?? DateTime.UtcNow
+        };
+
+        enquiry.BalancingChecklist = newRecord;
+        _context.BalancingChecklistRecords.Add(newRecord);
+
+        await _context.SaveChangesAsync();
+        return Created($"/api/service-enquiry/{enquiryId}/checklists/balancing-technician-checklist", null);
+    }
+    else
+    {
+        if (dto.WheelCleaned.HasValue)
+            enquiry.BalancingChecklist.WheelCleaned = dto.WheelCleaned.Value;
+
+        if (dto.WeightsFixedSecurely.HasValue)
+            enquiry.BalancingChecklist.WeightsFixedSecurely = dto.WeightsFixedSecurely.Value;
+
+        if (dto.FinalRecheckDone.HasValue)
+            enquiry.BalancingChecklist.FinalRecheckDone = dto.FinalRecheckDone.Value;
+
+        if (dto.TechnicianNotes != null)
+            enquiry.BalancingChecklist.TechnicianNotes = dto.TechnicianNotes;
+
+        if (dto.CompletedAt.HasValue)
+            enquiry.BalancingChecklist.CompletedAt = dto.CompletedAt.Value;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}
+
+// ────────────────────────────────────────────────
+// PUC CHECKLIST - Upsert
+// ────────────────────────────────────────────────
+[HttpPut("{enquiryId}/checklists/puc-operator-checklist")]
+public async Task<IActionResult> UpsertPucChecklist(
+    Guid enquiryId,
+    [FromBody] UpdatePucChecklistDto dto)
+{
+    var enquiry = await _context.ServiceEnquiries
+        .Include(e => e.PucChecklist)
+        .FirstOrDefaultAsync(e => e.Id == enquiryId);
+
+    if (enquiry == null)
+        return NotFound("Service enquiry not found");
+
+    if (enquiry.PucChecklist == null)
+    {
+        var newRecord = new PucChecklistRecord
+        {
+            Id = Guid.NewGuid(),
+            ServiceEnquiryId = enquiryId,
+            EngineWarmed = dto.EngineWarmed ?? false,
+            ProbeInsertedCorrectly = dto.ProbeInsertedCorrectly ?? false,
+            CertificatePrintedAndUploaded = dto.CertificatePrintedAndUploaded ?? false,
+            TechnicianNotes = dto.TechnicianNotes,
+            CompletedAt = dto.CompletedAt ?? DateTime.UtcNow
+        };
+
+        enquiry.PucChecklist = newRecord;
+        _context.PucChecklistRecords.Add(newRecord);
+
+        await _context.SaveChangesAsync();
+        return Created($"/api/service-enquiry/{enquiryId}/checklists/puc-operator-checklist", null);
+    }
+    else
+    {
+        if (dto.EngineWarmed.HasValue)
+            enquiry.PucChecklist.EngineWarmed = dto.EngineWarmed.Value;
+
+        if (dto.ProbeInsertedCorrectly.HasValue)
+            enquiry.PucChecklist.ProbeInsertedCorrectly = dto.ProbeInsertedCorrectly.Value;
+
+        if (dto.CertificatePrintedAndUploaded.HasValue)
+            enquiry.PucChecklist.CertificatePrintedAndUploaded = dto.CertificatePrintedAndUploaded.Value;
+
+        if (dto.TechnicianNotes != null)
+            enquiry.PucChecklist.TechnicianNotes = dto.TechnicianNotes;
+
+        if (dto.CompletedAt.HasValue)
+            enquiry.PucChecklist.CompletedAt = dto.CompletedAt.Value;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}
+
+// ────────────────────────────────────────────────
+// CAR WASH CHECKLIST - Upsert
+// ────────────────────────────────────────────────
+[HttpPut("{enquiryId}/checklists/car-wash-checklist")]
+public async Task<IActionResult> UpsertCarWashChecklist(
+    Guid enquiryId,
+    [FromBody] UpdateCarWashChecklistDto dto)
+{
+    var enquiry = await _context.ServiceEnquiries
+        .Include(e => e.CarWashChecklist)
+        .FirstOrDefaultAsync(e => e.Id == enquiryId);
+
+    if (enquiry == null)
+        return NotFound("Service enquiry not found");
+
+    if (enquiry.CarWashChecklist == null)
+    {
+        var newRecord = new CarWashChecklistRecord
+        {
+            Id = Guid.NewGuid(),
+            ServiceEnquiryId = enquiryId,
+            ExteriorWashed = dto.ExteriorWashed ?? false,
+            InteriorVacuumed = dto.InteriorVacuumed ?? false,
+            NoWaterOnEngineElectrics = dto.NoWaterOnEngineElectrics ?? false,
+            TechnicianNotes = dto.TechnicianNotes,
+            CompletedAt = dto.CompletedAt ?? DateTime.UtcNow
+        };
+
+        enquiry.CarWashChecklist = newRecord;
+        _context.CarWashChecklistRecords.Add(newRecord);
+
+        await _context.SaveChangesAsync();
+        return Created($"/api/service-enquiry/{enquiryId}/checklists/car-wash-checklist", null);
+    }
+    else
+    {
+        if (dto.ExteriorWashed.HasValue)
+            enquiry.CarWashChecklist.ExteriorWashed = dto.ExteriorWashed.Value;
+
+        if (dto.InteriorVacuumed.HasValue)
+            enquiry.CarWashChecklist.InteriorVacuumed = dto.InteriorVacuumed.Value;
+
+        if (dto.NoWaterOnEngineElectrics.HasValue)
+            enquiry.CarWashChecklist.NoWaterOnEngineElectrics = dto.NoWaterOnEngineElectrics.Value;
+
+        if (dto.TechnicianNotes != null)
+            enquiry.CarWashChecklist.TechnicianNotes = dto.TechnicianNotes;
+
+        if (dto.CompletedAt.HasValue)
+            enquiry.CarWashChecklist.CompletedAt = dto.CompletedAt.Value;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}
+
+
+// GET: api/service-enquiry/{enquiryId}/checklists/tyre-technician-checklist
+[HttpGet("{enquiryId}/checklists/tyre-technician-checklist")]
+public async Task<IActionResult> GetTyreChecklist(Guid enquiryId)
+{
+    var checklist = await _context.TyreChecklistRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
+
+    if (checklist == null)
+        return NotFound("Tyre checklist not found for this enquiry");
+
+    return Ok(checklist);
+}
+
+// GET: api/service-enquiry/{enquiryId}/checklists/alignment-technician-checklist
+[HttpGet("{enquiryId}/checklists/alignment-technician-checklist")]
+public async Task<IActionResult> GetAlignmentChecklist(Guid enquiryId)
+{
+    var checklist = await _context.AlignmentChecklistRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
+
+    if (checklist == null)
+        return NotFound("Alignment checklist not found for this enquiry");
+
+    return Ok(checklist);
+}
+
+// GET: api/service-enquiry/{enquiryId}/checklists/balancing-technician-checklist
+[HttpGet("{enquiryId}/checklists/balancing-technician-checklist")]
+public async Task<IActionResult> GetBalancingChecklist(Guid enquiryId)
+{
+    var checklist = await _context.BalancingChecklistRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
+
+    if (checklist == null)
+        return NotFound("Balancing checklist not found for this enquiry");
+
+    return Ok(checklist);
+}
+
+// GET: api/service-enquiry/{enquiryId}/checklists/puc-operator-checklist
+[HttpGet("{enquiryId}/checklists/puc-operator-checklist")]
+public async Task<IActionResult> GetPucChecklist(Guid enquiryId)
+{
+    var checklist = await _context.PucChecklistRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
+
+    if (checklist == null)
+        return NotFound("PUC checklist not found for this enquiry");
+
+    return Ok(checklist);
+}
+
+// GET: api/service-enquiry/{enquiryId}/checklists/car-wash-checklist
+[HttpGet("{enquiryId}/checklists/car-wash-checklist")]
+public async Task<IActionResult> GetCarWashChecklist(Guid enquiryId)
+{
+    var checklist = await _context.CarWashChecklistRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
+
+    if (checklist == null)
+        return NotFound("Car Wash checklist not found for this enquiry");
+
+    return Ok(checklist);
+}
+
+// In your InspectionsController or ServiceEnquiryController
+
+[HttpGet("{id}/inspections/battery-check")]
+public async Task<ActionResult<BatteryInspectionDto>> GetBatteryInspection(Guid id)
+{
+    var record = await _context.BatteryInspectionRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(b => b.ServiceEnquiryId == id);
+
+    if (record == null)
+    {
+        return NotFound();
+    }
+
+    var dto = new BatteryInspectionDto
+    {
+        Condition       = record.Condition?.ToString(),
+        Voltage         = record.Voltage,
+        SpecificGravity = record.SpecificGravity,
+        Complaint       = record.Complaint,
+        Notes           = record.Notes,
+        CompletedAt     = record.CompletedAt
+    };
+
+    return Ok(dto);
+}
+
+[HttpGet("{id}/inspections/oil-check")]
+public async Task<ActionResult<OilInspectionDto>> GetOilInspection(Guid id)
+{
+    var record = await _context.OilInspectionRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(o => o.ServiceEnquiryId == id);
+
+    if (record == null)
+    {
+        return NotFound();
+    }
+
+    var dto = new OilInspectionDto
+    {
+        Quality     = record.Quality?.ToString(),
+        Level       = record.Level?.ToString(),
+        Complaint   = record.Complaint,
+        Notes       = record.Notes,
+        CompletedAt = record.CompletedAt
+    };
+
+    return Ok(dto);
+}
+
+[HttpGet("{id}/inspections/tyre-rotation")]
+public async Task<ActionResult<TyreRotationInspectionDto>> GetTyreRotationInspection(Guid id)
+{
+    var record = await _context.TyreRotationInspectionRecords
+        .AsNoTracking()
+        .FirstOrDefaultAsync(t => t.ServiceEnquiryId == id);
+
+    if (record == null)
+    {
+        return NotFound();
+    }
+
+    var dto = new TyreRotationInspectionDto
+    {
+        RotationType = record.RotationType,
+        Complaint    = record.Complaint,
+        Notes        = record.Notes,
+        CompletedAt  = record.CompletedAt
+    };
+
+    return Ok(dto);
+}
+
+
+[HttpPatch("{id}/complete")]
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> CompleteServiceEnquiry(Guid id)
+{
+    var userId = (Guid)HttpContext.Items["UserId"]!;
+    var userRole = (RoleType)HttpContext.Items["UserRole"]!;
+
+    if (userRole != RoleType.Admin)
+        return StatusCode(403, new { message = "Only Admin can complete" });
+
+var enquiry = await _context.ServiceEnquiries
+    .Include(e => e.SelectedServices)           // ← add this
+        .ThenInclude(ss => ss.Service)          // ← add this
+    .Include(e => e.TyreChecklist)
+    .Include(e => e.AlignmentChecklist)
+    .Include(e => e.BalancingChecklist)
+    .Include(e => e.PucChecklist)
+    .Include(e => e.CarWashChecklist)
+    .FirstOrDefaultAsync(e => e.Id == id);
+    
+    if (enquiry == null) return NotFound();
+    if (enquiry.Status == ServiceEnquiryStatus.Completed) return Ok("Already completed");
+    if (enquiry.Status != ServiceEnquiryStatus.Pending) return BadRequest("Only Pending allowed");
+
+    var missing = new List<string>();
+
+    // Helper: check if service is selected
+    bool HasService(string code) => 
+    enquiry.SelectedServices.Any(ss => ss.Service.Code == code);
+
+    // Tyre (covers both inspection and rotation)
+    if ((HasService("TYRE_INSPECT") || HasService("TYRE_ROT")) &&
+        (enquiry.TyreChecklist == null || !ChecklistHelper.IsChecklistComplete(enquiry.TyreChecklist)))
+    {
+        missing.Add("Tyre Checklist " + (enquiry.TyreChecklist == null ? "(not created)" : "(incomplete)"));
+    }
+
+    // Alignment
+    if (HasService("ALIGNMENT") &&
+        (enquiry.AlignmentChecklist == null || !ChecklistHelper.IsChecklistComplete(enquiry.AlignmentChecklist)))
+    {
+        missing.Add("Alignment Checklist " + (enquiry.AlignmentChecklist == null ? "(not created)" : "(incomplete)"));
+    }
+
+    // Balancing
+    if (HasService("BALANCING") &&
+        (enquiry.BalancingChecklist == null || !ChecklistHelper.IsChecklistComplete(enquiry.BalancingChecklist)))
+    {
+        missing.Add("Balancing Checklist " + (enquiry.BalancingChecklist == null ? "(not created)" : "(incomplete)"));
+    }
+
+    // PUC
+    if (HasService("PUC") &&
+        (enquiry.PucChecklist == null || !ChecklistHelper.IsChecklistComplete(enquiry.PucChecklist)))
+    {
+        missing.Add("PUC Checklist " + (enquiry.PucChecklist == null ? "(not created)" : "(incomplete)"));
+    }
+
+    // Car Wash
+    if (HasService("CAR_WASH") &&
+        (enquiry.CarWashChecklist == null || !ChecklistHelper.IsChecklistComplete(enquiry.CarWashChecklist)))
+    {
+        missing.Add("Car Wash Checklist " + (enquiry.CarWashChecklist == null ? "(not created)" : "(incomplete)"));
+    }
+
+    if (missing.Any())
+    {
+        return BadRequest(new
+        {
+            message = "Cannot complete: Required checklists missing or incomplete",
+            missingChecklists = missing
+        });
+    }
+
+    // Complete
+    enquiry.Status = ServiceEnquiryStatus.Completed;
+    enquiry.UpdatedBy = userId;
+    enquiry.UpdatedAt = DateTime.UtcNow;
+
+    await _context.SaveChangesAsync();
+
+    return Ok(new
+    {
+        message = "Completed successfully",
+        enquiryId = enquiry.Id,
+        completedAt = enquiry.UpdatedAt
+    });
+}
+
+[HttpGet("my-enquiries")]
+[Authorize]
+public async Task<IActionResult> GetMyEnquiriesByDesignations()
+{
+    if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) ||
+        userIdObj is not Guid userId)
+    {
+        return Unauthorized(new { message = "User not authenticated" });
+    }
+
+    var user = await _context.Users
+        .AsNoTracking()
+        .Include(u => u.UserDesignations)
+        .FirstOrDefaultAsync(u => u.Id == userId);
+
+    if (user == null)
+    {
+        return NotFound(new { message = "User not found" });
+    }
+
+    var userDesignationIds = user.UserDesignations
+        .Select(ud => ud.DesignationId)
+        .Distinct()
+        .ToList();
+
+    if (userDesignationIds.Count == 0)
+    {
+        return Ok(new List<object>());
+    }
+
+    // ── FIXED PART ────────────────────────────────────────────────
+    var designationServiceIds = await _context.Designations
+        .Where(d => userDesignationIds.Contains(d.Id))
+        .Select(d => d.ServiceId)
+        .Where(id => id.HasValue)
+        .Select(id => id.Value)
+        .Distinct()
+        .ToListAsync();
+    // ──────────────────────────────────────────────────────────────
+
+    if (designationServiceIds.Count == 0)
+    {
+        return Ok(new List<object>());
+    }
+
+    var enquiries = await _context.ServiceEnquiries
+        .Include(e => e.SelectedServices)
+            .ThenInclude(ss => ss.Service)
+            .Where(e => e.Status == ServiceEnquiryStatus.Pending)
+        .Where(e => e.SelectedServices.Any(ss => designationServiceIds.Contains(ss.ServiceId)))
+        .Select(e => new
+        {
+            e.Id,
+            e.CustomerName,
+            e.CustomerPhone,
+            e.VehicleNo,
+            e.VehicleName,
+            e.Status,
+            e.CreatedAt,
+            e.ServiceDate,
+            e.Odometer,
+            Services = e.SelectedServices.Select(ss => new
+            {
+                ServiceId   = ss.ServiceId,
+                ServiceName = ss.Service.Name,
+                ServiceCode = ss.Service.Code
+            }).ToList()
+        })
+        .OrderByDescending(e => e.CreatedAt)
+        .ToListAsync();
+
+    return Ok(enquiries);
+}
+
 }

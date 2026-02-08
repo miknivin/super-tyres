@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/redux/api/servicesApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -32,15 +33,15 @@ export interface RecentService {
 // Re-use exact types from your slice for request
 // ────────────────────────────────────────────────
 import type {
-  TyreInspectionData,
   TyreRotationData,
   AlignmentData,
-  BalancingData,
   CarWashingData,
   PUSOperatorData,
   BatteryCheckData,
   OilCheckUpData,
+  TyreValues,
 } from "../slices/serviceEnquiryFormSlice";
+import type { TyrePosition } from "../../components/work/add-work/TyreInspectionForm";
 
 // ────────────────────────────────────────────────
 // Checklist DTOs (matching your DTO structure)
@@ -66,6 +67,13 @@ export interface AlignmentChecklistResponse {
   completedAt?: string | null;
 }
 
+export interface BalancingInspectionData {
+  frontLeftWeight: number | null;
+  frontRightWeight: number | null;
+  rearLeftWeight: number | null;
+  rearRightWeight: number | null;
+  complaint: string;
+}
 export interface BalancingChecklistResponse {
   id: string;
   serviceEnquiryId: string;
@@ -109,6 +117,15 @@ export interface ServiceEnquiryChecklistsResponse {
   carWashChecklist?: CarWashChecklistResponse | null;
 }
 
+interface TyreInspectionData {
+  selectedTyre: TyrePosition | null; // assuming TyrePosition is already defined elsewhere
+  frontLeft: TyreValues | null;
+  frontRight: TyreValues | null;
+  rearLeft: TyreValues | null;
+  rearRight: TyreValues | null;
+  selectedComplaints: string[];
+  customComplaint: string;
+}
 // ────────────────────────────────────────────────
 // Request shape for creating Service Enquiry (unchanged)
 // ────────────────────────────────────────────────
@@ -129,7 +146,7 @@ interface CreateServiceEnquiryRequest {
   tyreInspection?: TyreInspectionData;
   tyreRotationInspection?: TyreRotationData;
   alignmentInspection?: AlignmentData;
-  balancingInspection?: BalancingData;
+  balancingInspection?: BalancingInspectionData;
   carWashInspection?: CarWashingData;
   pucInspection?: PUSOperatorData;
   batteryInspection?: BatteryCheckData;
@@ -156,6 +173,82 @@ export interface ServiceEnquiryListItem {
     name: string;
   }>;
 }
+
+export interface BatteryInspectionSummary {
+  id: string;
+  condition?: string | null;
+  voltage?: number | null;
+  specificGravity?: number | null;
+  complaint?: string | null;
+  completedAt?: string | null;
+}
+
+export interface TyreRotationInspectionSummary {
+  id: string;
+  rotationType?: string | null;
+  complaint?: string | null;
+  completedAt?: string | null;
+}
+
+export interface OilInspectionSummary {
+  id: string;
+  quality?: string | null;
+  level?: string | null;
+  complaint?: string | null;
+  completedAt?: string | null;
+}
+
+export interface BatteryInspectionSummary {
+  id: string;
+  condition?: string | null;
+  voltage?: number | null;
+  specificGravity?: number | null;
+  complaint?: string | null;
+  completedAt?: string | null;
+}
+
+export interface TyreRotationInspectionSummary {
+  id: string;
+  rotationType?: string | null;
+  complaint?: string | null;
+  completedAt?: string | null;
+}
+
+export interface OilInspectionSummary {
+  id: string;
+  quality?: string | null;
+  level?: string | null;
+  complaint?: string | null;
+  completedAt?: string | null;
+}
+
+export interface InspectionSummaryResponse {
+  battery: BatteryInspectionSummary | null;
+  tyreRotation: TyreRotationInspectionSummary | null;
+  oil: OilInspectionSummary | null;
+}
+
+export interface InspectionSummaryResponse {
+  battery: BatteryInspectionSummary | null;
+  tyreRotation: TyreRotationInspectionSummary | null;
+  oil: OilInspectionSummary | null;
+}
+
+export interface CompleteEnquiryResponse {
+  message: string;
+  enquiryId: string;
+  completedAt: string;
+}
+
+export interface CompleteEnquiryErrorResponse {
+  message: string;
+  incompleteChecklists?: string[]; // list of missing/incomplete checklist names
+}
+
+export type BatteryInspectionResponse = BatteryInspectionSummary | null;
+export type TyreRotationInspectionResponse =
+  TyreRotationInspectionSummary | null;
+export type OilInspectionResponse = OilInspectionSummary | null;
 // ────────────────────────────────────────────────
 // API Definition
 // ────────────────────────────────────────────────
@@ -171,6 +264,7 @@ export const servicesApi = createApi({
     "RecentServices",
     "ServiceEnquiry",
     "Checklists",
+    "Inspections",
   ],
   endpoints: (builder) => ({
     // ── Existing endpoints (unchanged) ─────────────────────────────────────
@@ -254,6 +348,84 @@ export const servicesApi = createApi({
       query: () => "/service-enquiry",
       providesTags: ["ServiceEnquiry"],
     }),
+    getServiceEnquiryById: builder.query<ServiceEnquiryListItem, string>({
+      query: (enquiryId) => `/service-enquiry/${enquiryId}`,
+      providesTags: (result, error, id) => [
+        { type: "ServiceEnquiry", id },
+        "ServiceEnquiry",
+      ],
+    }),
+    updateChecklist: builder.mutation<
+      void, // no response body (204 No Content)
+      {
+        enquiryId: string;
+        checklistType: string; // e.g. "tyre-technician-checklist"
+        data: any; // partial checklist data (use specific DTO in TS if desired)
+      }
+    >({
+      query: ({ enquiryId, checklistType, data }) => ({
+        url: `/service-enquiry/${enquiryId}/checklists/${checklistType}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { enquiryId }) => [
+        { type: "ServiceEnquiry", id: enquiryId },
+        "Checklists",
+      ],
+    }),
+    getChecklistByType: builder.query<
+      any | null,
+      { enquiryId: string; checklistType: string }
+    >({
+      query: ({ enquiryId, checklistType }) =>
+        `/service-enquiry/${enquiryId}/checklists/${checklistType}`,
+
+      providesTags: (result, error, { enquiryId, checklistType }) => [
+        { type: "Checklists", id: `${enquiryId}-${checklistType}` },
+        { type: "ServiceEnquiry", id: enquiryId },
+      ],
+    }),
+
+    // GET /service-enquiry/{enquiryId}/inspections/{type}
+    getInspectionSummaryByEnquiryId: builder.query<
+      | BatteryInspectionResponse
+      | TyreRotationInspectionResponse
+      | OilInspectionResponse
+      | null,
+      { enquiryId: string; type: string }
+    >({
+      query: ({ enquiryId, type }) =>
+        `/service-enquiry/${enquiryId}/inspections/${type}`,
+      providesTags: (result, error, { enquiryId }) => [
+        { type: "Inspections", id: enquiryId },
+        "ServiceEnquiry",
+      ],
+    }),
+    completeServiceEnquiry: builder.mutation<
+      CompleteEnquiryResponse,
+      string // enquiryId
+    >({
+      query: (enquiryId) => ({
+        url: `/service-enquiry/${enquiryId}/complete`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, enquiryId) => [
+        { type: "ServiceEnquiry", id: enquiryId },
+        "Checklists",
+        "Inspections",
+      ],
+      // Optional: transform error response for better frontend handling
+      transformErrorResponse: (response) => {
+        if (response.status === 400) {
+          return response.data as CompleteEnquiryErrorResponse;
+        }
+        return { message: "Failed to complete enquiry" };
+      },
+    }),
+    getMyEnquiries: builder.query<any[], void>({
+      query: () => "/service-enquiry/my-enquiries",
+      providesTags: ["ServiceEnquiry"],
+    }),
   }),
 });
 
@@ -267,7 +439,14 @@ export const {
   useGetRecentServicesQuery,
   useCreateServiceEnquiryMutation,
   useGetAllServiceEnquiriesQuery,
-  useGetServiceEnquiryChecklistsQuery, // ← new hook
+  useGetServiceEnquiryChecklistsQuery,
+  useGetServiceEnquiryByIdQuery,
+  useUpdateChecklistMutation,
+  useGetChecklistByTypeQuery,
+  useLazyGetChecklistByTypeQuery,
+  useLazyGetInspectionSummaryByEnquiryIdQuery,
+  useCompleteServiceEnquiryMutation,
+  useGetMyEnquiriesQuery,
 } = servicesApi;
 
 export default servicesApi.reducer;

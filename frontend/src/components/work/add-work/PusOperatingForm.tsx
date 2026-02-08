@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/work/add-work/PUSOperatorForm.tsx
-
-import { ChevronLeft, MoreVertical } from "lucide-react";
+import React from "react";
+import { ChevronLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "../../../redux/store"; // adjust path
+import type { RootState } from "../../../redux/store";
 import {
   goToStep,
   updatePUSOperator,
-} from "../../../redux/slices/serviceEnquiryFormSlice"; // adjust path
+} from "../../../redux/slices/serviceEnquiryFormSlice";
 
 interface TestToggles {
   normalPUC: boolean;
@@ -21,9 +23,18 @@ type FuelType = "Petrol" | "Diesel" | "CNG/LPG" | null;
 export default function PUSOperatorForm() {
   const dispatch = useDispatch();
 
-  // Read from Redux
+  // Read PUS operator toggles & fuel type from Redux
   const { tests, fuelType } = useSelector(
     (state: RootState) => state.serviceEnquiry.data.pusOperator,
+  );
+
+  // Read customer & vehicle data from Redux slice
+  const { customer, serviceDate, odometer } = useSelector(
+    (state: RootState) => ({
+      customer: state.serviceEnquiry.data.customer,
+      serviceDate: state.serviceEnquiry.data.customer.serviceDate,
+      odometer: state.serviceEnquiry.data.customer.odometer,
+    }),
   );
 
   const handleToggleTest = (test: keyof TestToggles) => {
@@ -42,9 +53,9 @@ export default function PUSOperatorForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-md mx-auto">
-        {/* Back Button – optional (ServiceLayout handles navigation) */}
+    <div className="bg-gray-50 min-h-screen p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Back Button */}
         <button
           onClick={() => dispatch(goToStep(1))}
           className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6 transition-colors"
@@ -55,25 +66,32 @@ export default function PUSOperatorForm() {
 
         {/* Main Card */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {/* Vehicle and Customer Info */}
+          {/* Vehicle and Customer Info – now dynamic */}
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="text-xl font-bold text-gray-900">
-                KL 57 M 8478
+                {customer.vehicleNo || "N/A"}
               </div>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <MoreVertical size={20} className="text-gray-600" />
-              </button>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Customer Details */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Customer Details
                 </h3>
-                <p className="text-sm text-gray-700 font-medium">Mirshad</p>
-                <p className="text-xs text-gray-500">+91 807 812 345</p>
-                <p className="text-xs text-gray-500">25,5400 km</p>
+                <p className="text-sm text-gray-700 font-medium">
+                  {customer.name || "N/A"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {customer.phone || "N/A"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {odometer ? `${odometer.toLocaleString()} km` : "N/A"}
+                </p>
               </div>
+
+              {/* Service Details */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Service Details
@@ -81,11 +99,17 @@ export default function PUSOperatorForm() {
                 <div className="text-xs space-y-1">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Service date</span>
-                    <span className="text-gray-900">12/02/2024</span>
+                    <span className="text-gray-900">
+                      {serviceDate
+                        ? new Date(serviceDate).toLocaleDateString("en-IN")
+                        : "N/A"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">km</span>
-                    <span className="text-gray-900">58,000 km</span>
+                    <span className="text-gray-600">Odometer</span>
+                    <span className="text-gray-900">
+                      {odometer ? `${odometer.toLocaleString()} km` : "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>

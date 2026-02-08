@@ -129,5 +129,25 @@ namespace backend.Controllers
                 employeeId
             ));
         }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            if (Request.Cookies.ContainsKey("jwt"))
+            {
+                Response.Cookies.Delete("jwt", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // must match login cookie
+                    SameSite = SameSiteMode.Strict
+                });
+            }
+
+            return Ok(new { message = "Logged out successfully" });
+        }
+
     }
+
+    
 }

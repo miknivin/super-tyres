@@ -1,44 +1,90 @@
 // src/components/alerts/AlertCard.tsx
 
-import type { Alert } from "../../types/alert.types";
+// You can delete or deprecate the old import
+// import type { Alert } from "../../types/alert.types";
 
-interface AlertCardProps {
-  alert: Alert;
+// New interface matching backend + computed fields
+interface EnquiryAlertCardProps {
+  alert: {
+    id: string;
+    customerName: string;
+    customerPhone: string;
+    vehicleNo: string;
+    vehicleName: string;
+    status: number;
+    createdAt: string;
+    serviceDate?: string | null;
+    odometer?: number | null;
+    serviceWithNames: Array<{ code: string; name: string }>;
+
+    // Optional: if you want to compute/pass these from parent
+    timeElapsed?: string;
+    displayService?: string;
+  };
 }
 
-export function AlertCard({ alert }: AlertCardProps) {
+export function AlertCard({ alert }: EnquiryAlertCardProps) {
+  // Fallbacks / computed values inside component
+  const displayOdometer =
+    alert.odometer != null ? `${alert.odometer.toLocaleString()} km` : "—";
+  const mainService =
+    alert.displayService || alert.serviceWithNames?.[0]?.name || "Service";
+  const time = alert.timeElapsed || "—";
+
+  const displayStatus =
+    alert.status === 0
+      ? "Pending"
+      : alert.status === 1
+        ? "Completed"
+        : alert.status; // fallback to whatever is in DB if not 0 or 1
+
+  // Optional: different colors for better visual distinction
+  const statusColorClass =
+    displayStatus === "Pending"
+      ? "text-amber-600 dark:text-amber-400"
+      : displayStatus === "Completed"
+        ? "text-emerald-600 dark:text-emerald-400"
+        : "text-teal-600 dark:text-teal-400";
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow">
+    <div className="overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow ">
       <div className="p-4">
         <div className="mb-2 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">
-              {alert.vehicleNumber}
+            <h3 className="text-lg font-bold text-gray-900 ">
+              {alert.vehicleNo}
             </h3>
-            <p className="font-medium text-gray-700">{alert.customerName}</p>
-            <p className="text-sm text-gray-500">{alert.phone}</p>
+            <p className="font-medium text-gray-700 ">{alert.customerName}</p>
+            <p className="text-sm text-gray-500 ">{alert.customerPhone}</p>
           </div>
-
           <span className="inline-flex items-center whitespace-nowrap rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
-            {alert.timeElapsed}
+            {time}
           </span>
         </div>
 
-        <div className="mb-4 flex items-center gap-3 text-sm text-gray-600">
-          <span>{alert.odometer}</span>
-          <span className="h-1 w-1 rounded-full bg-gray-400" aria-hidden="true" />
-          <span>{alert.service}</span>
+        <div className="mb-4 flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+          <span>{displayOdometer}</span>
+          <span
+            className="h-1 w-1 rounded-full bg-gray-400 dark:bg-gray-500"
+            aria-hidden="true"
+          />
+          <span className="font-medium">{mainService}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-teal-600">{alert.status}</span>
+          <span className={`text-sm font-semibold ${statusColorClass}`}>
+            {displayStatus}
+          </span>
 
-          <button
-            type="button"
-            className="rounded-lg bg-teal-600 px-6 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800"
-          >
-            Continue
-          </button>
+          {alert.status === 0 && (
+            <button
+              type="button"
+              className="rounded-lg bg-teal-600 px-6 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800 dark:bg-teal-700 dark:hover:bg-teal-600 dark:focus:ring-offset-gray-900"
+              // You should add onClick here later
+              // onClick={() => navigate(`/enquiry/${alert.id}`)}
+            >
+              Continue
+            </button>
+          )}
         </div>
       </div>
     </div>

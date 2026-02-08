@@ -1,3 +1,5 @@
+using backend.Models.auth;
+
 namespace backend.Models.Operations;
 
 // Enum for battery condition (matches frontend: "Good" | "Average" | "Replace")
@@ -8,10 +10,6 @@ public enum BatteryCondition
     Replace
 }
 
-/// <summary>
-/// Detailed battery inspection record for a job card.
-/// Captures condition, voltage, specific gravity, and complaint.
-/// </summary>
 public class BatteryInspectionRecord
 {
     public Guid Id { get; set; }
@@ -23,4 +21,11 @@ public class BatteryInspectionRecord
     public string Complaint { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public DateTime? CompletedAt { get; set; }
+      public Guid CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Guid? UpdatedBy { get; set; }          // nullable
+    public DateTime? UpdatedAt { get; set; }      // nullable
+
+    public User? CreatedByUser { get; set; }
+    public User? UpdatedByUser { get; set; }
 }
