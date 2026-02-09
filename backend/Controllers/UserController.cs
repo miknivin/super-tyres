@@ -227,7 +227,7 @@ public async Task<IActionResult> GetMyEnquiriesSummary()
             e.Id,
             e.VehicleNo,
             e.CustomerName,
-            e.Status,
+            Status = e.Status.ToString(),
             e.CreatedAt,
             e.ServiceDate,
             ServiceCount = e.SelectedServices.Count,
@@ -243,4 +243,5 @@ public async Task<IActionResult> GetMyEnquiriesSummary()
 
     return Ok(response);
 }
+
 }

@@ -158,7 +158,15 @@ interface ServiceEnquiryResponse {
   id: string;
 }
 
-export interface ServiceEnquiryListItem {
+interface PagedEnquiries {
+  items: ServiceEnquiryListItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+interface ServiceEnquiryListItem {
   id: string;
   customerName: string;
   customerPhone: string;
@@ -238,6 +246,20 @@ export interface CompleteEnquiryResponse {
   message: string;
   enquiryId: string;
   completedAt: string;
+}
+
+export interface ServiceEnquiryFilter {
+  page?: number; // default 1
+  pageSize?: number; // default 10
+  keyword?: string;
+  createdFrom?: string; // ISO string "2025-01-01"
+  createdTo?: string;
+  updatedFrom?: string;
+  updatedTo?: string;
+  minOdometer?: number;
+  maxOdometer?: number;
+  serviceIds?: string[]; // array of GUID strings
+  status?: string; // "Pending", "Completed", etc.
 }
 
 export interface CompleteEnquiryErrorResponse {
@@ -344,10 +366,38 @@ export const servicesApi = createApi({
         "ServiceEnquiry",
       ],
     }),
-    getAllServiceEnquiries: builder.query<ServiceEnquiryListItem[], void>({
-      query: () => "/service-enquiry",
-      providesTags: ["ServiceEnquiry"],
+    getAllServiceEnquiries: builder.query<
+      PagedEnquiries,
+      Partial<ServiceEnquiryFilter>
+    >({
+      query: (filter = {}) => ({
+        url: "/service-enquiry",
+        params: {
+          page: filter.page ?? 1,
+          pageSize: filter.pageSize ?? 10,
+          keyword: filter.keyword,
+          createdFrom: filter.createdFrom,
+          createdTo: filter.createdTo,
+          updatedFrom: filter.updatedFrom,
+          updatedTo: filter.updatedTo,
+          minOdometer: filter.minOdometer,
+          maxOdometer: filter.maxOdometer,
+          serviceIds: filter.serviceIds, // array will be serialized as comma-separated
+          status: filter.status,
+        },
+      }),
+      providesTags: (result) =>
+        result?.items
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: "ServiceEnquiry" as const,
+                id,
+              })),
+              { type: "ServiceEnquiry", id: "LIST" },
+            ]
+          : [{ type: "ServiceEnquiry", id: "LIST" }],
     }),
+
     getServiceEnquiryById: builder.query<ServiceEnquiryListItem, string>({
       query: (enquiryId) => `/service-enquiry/${enquiryId}`,
       providesTags: (result, error, id) => [
@@ -401,27 +451,19 @@ export const servicesApi = createApi({
         "ServiceEnquiry",
       ],
     }),
-    completeServiceEnquiry: builder.mutation<
-      CompleteEnquiryResponse,
-      string // enquiryId
-    >({
+    completeServiceEnquiry: builder.mutation<CompleteEnquiryResponse, string>({
       query: (enquiryId) => ({
         url: `/service-enquiry/${enquiryId}/complete`,
         method: "PATCH",
       }),
       invalidatesTags: (result, error, enquiryId) => [
-        { type: "ServiceEnquiry", id: enquiryId },
-        "Checklists",
-        "Inspections",
+        { type: "ServiceEnquiry", id: enquiryId }, // detail page
+        { type: "ServiceEnquiry" }, // all lists
+        { type: "Checklists", id: enquiryId },
+        { type: "Inspections", id: enquiryId },
       ],
-      // Optional: transform error response for better frontend handling
-      transformErrorResponse: (response) => {
-        if (response.status === 400) {
-          return response.data as CompleteEnquiryErrorResponse;
-        }
-        return { message: "Failed to complete enquiry" };
-      },
     }),
+
     getMyEnquiries: builder.query<any[], void>({
       query: () => "/service-enquiry/my-enquiries",
       providesTags: ["ServiceEnquiry"],

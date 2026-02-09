@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-hooks/set-state-in-render */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/work/WorkTypeSelector.tsx
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -107,7 +107,7 @@ export default function WorkTypeSelector() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className=" bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
@@ -132,7 +132,7 @@ export default function WorkTypeSelector() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className=" bg-gray-50 pb-24">
       <div className="w-full max-w-2xl mx-auto px-4 pt-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -170,7 +170,7 @@ export default function WorkTypeSelector() {
                     }`}
                   >
                     {isSelected && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                      <div className="w-1.5 h-1.5 bg-white rounded-full "></div>
                     )}
                   </div>
                 </div>

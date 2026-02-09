@@ -1,5 +1,7 @@
 // src/components/alerts/AlertCard.tsx
 
+import { useNavigate } from "react-router-dom";
+
 // You can delete or deprecate the old import
 // import type { Alert } from "../../types/alert.types";
 
@@ -25,6 +27,7 @@ interface EnquiryAlertCardProps {
 
 export function AlertCard({ alert }: EnquiryAlertCardProps) {
   // Fallbacks / computed values inside component
+  const navigate = useNavigate();
   const displayOdometer =
     alert.odometer != null ? `${alert.odometer.toLocaleString()} km` : "—";
   const mainService =
@@ -80,7 +83,7 @@ export function AlertCard({ alert }: EnquiryAlertCardProps) {
               type="button"
               className="rounded-lg bg-teal-600 px-6 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800 dark:bg-teal-700 dark:hover:bg-teal-600 dark:focus:ring-offset-gray-900"
               // You should add onClick here later
-              // onClick={() => navigate(`/enquiry/${alert.id}`)}
+              onClick={() => navigate(`/work/${alert.id}`)}
             >
               Continue
             </button>

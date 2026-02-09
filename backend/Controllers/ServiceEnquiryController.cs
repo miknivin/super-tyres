@@ -7,6 +7,8 @@ using backend.Dtos;
 using backend.Models.auth;
 using backend.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using backend.Dtos.Others;
+using backend.Extensions;
 
 namespace backend.Controllers;
 
@@ -584,48 +586,69 @@ public async Task<IActionResult> GetRecentServices(
 }
     // GET: api/service-enquiry
 
+// Controllers/ServiceEnquiryController.cs
+
 [HttpGet]
-public async Task<ActionResult<IEnumerable<ServiceEnquiryResponseDto>>> GetAllServiceEnquiries()
+
+public async Task<ActionResult<PagedResult<ServiceEnquiryResponseDto>>> GetAllServiceEnquiries(
+    [FromQuery] ServiceEnquiryFilterDto filter)
 {
-    var enquiries = await _context.ServiceEnquiries
+    // Start with base query
+    IQueryable<ServiceEnquiry> query = _context.ServiceEnquiries
         .AsNoTracking()
         .Include(e => e.SelectedServices)
-            .ThenInclude(es => es.Service) // Loads Service.Code and Service.Name
-        .OrderByDescending(e => e.CreatedAt) // Newest first
+        .ThenInclude(es => es.Service);
+
+    // Apply all filters using composition (extension method)
+    query = query.ApplyFilter(filter);
+
+    // Get total count before pagination
+    int totalCount = await query.CountAsync();
+
+    // Apply ordering & pagination
+    var pagedItems = await query
+        .OrderByDescending(e => e.CreatedAt)
+        .Skip((filter.Page - 1) * filter.PageSize)
+        .Take(filter.PageSize)
+        .Select(e => new ServiceEnquiryResponseDto
+        {
+            Id = e.Id,
+            CustomerName = e.CustomerName,
+            CustomerPhone = e.CustomerPhone,
+            CustomerAddress = e.CustomerAddress,
+            CustomerCity = e.CustomerCity,
+            PinCode = e.PinCode,
+            VehicleName = e.VehicleName,
+            VehicleNo = e.VehicleNo,
+            Odometer = e.Odometer,
+            Wheel = e.Wheel,
+            VehicleType = e.VehicleType,
+            ServiceDate = e.ServiceDate,
+            ComplaintNotes = e.ComplaintNotes,
+            Status = e.Status.ToString(),
+            CreatedAt = e.CreatedAt,
+            UpdatedAt = e.UpdatedAt,
+            ServiceWithNames = e.SelectedServices
+                .Select(s => new ServiceWithNameDto
+                {
+                   Code = s.Service != null ? s.Service.Code : "Unknown",
+                   Name  = s.Service != null ? s.Service.Name  : "Unknown Service"
+                })
+                .ToList()
+        })
         .ToListAsync();
 
-    var response = enquiries.Select(e => new ServiceEnquiryResponseDto
+    var result = new PagedResult<ServiceEnquiryResponseDto>
     {
-        Id = e.Id,
-        CustomerName = e.CustomerName,
-        CustomerPhone = e.CustomerPhone,
-        CustomerAddress = e.CustomerAddress,
-        CustomerCity = e.CustomerCity,
-        PinCode = e.PinCode,
-        VehicleName = e.VehicleName,
-        VehicleNo = e.VehicleNo,
-        Odometer = e.Odometer,
-        Wheel = e.Wheel,
-        VehicleType = e.VehicleType,
-        ServiceDate = e.ServiceDate,
-        ComplaintNotes = e.ComplaintNotes,
-        Status = e.Status.ToString(),
-        CreatedAt = e.CreatedAt,
-        UpdatedAt = e.UpdatedAt,
+        Items = pagedItems,
+        TotalCount = totalCount,
+        Page = filter.Page,
+        PageSize = filter.PageSize,
+        TotalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize)
+    };
 
-        // NEW: Optional property with service code + name (as you wanted)
-        ServiceWithNames = e.SelectedServices
-            .Select(s => new ServiceWithNameDto
-            {
-                Code = s.Service?.Code ?? "Unknown",
-                Name = s.Service?.Name ?? "Unknown Service"
-            })
-            .ToList()
-    }).ToList();
-
-    return Ok(response);
+    return Ok(result);
 }
-
 
 // ────────────────────────────────────────────────
 // TYRE CHECKLIST - Upsert
@@ -923,7 +946,7 @@ public async Task<IActionResult> GetTyreChecklist(Guid enquiryId)
         .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
 
     if (checklist == null)
-        return NotFound("Tyre checklist not found for this enquiry");
+        return NotFound("Tyre checklist not updated");
 
     return Ok(checklist);
 }
@@ -937,7 +960,7 @@ public async Task<IActionResult> GetAlignmentChecklist(Guid enquiryId)
         .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
 
     if (checklist == null)
-        return NotFound("Alignment checklist not found for this enquiry");
+        return NotFound("Alignment checklist not updated");
 
     return Ok(checklist);
 }
@@ -951,7 +974,7 @@ public async Task<IActionResult> GetBalancingChecklist(Guid enquiryId)
         .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
 
     if (checklist == null)
-        return NotFound("Balancing checklist not found for this enquiry");
+        return NotFound("Balancing checklist not updated");
 
     return Ok(checklist);
 }
@@ -965,7 +988,7 @@ public async Task<IActionResult> GetPucChecklist(Guid enquiryId)
         .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
 
     if (checklist == null)
-        return NotFound("PUC checklist not found for this enquiry");
+        return NotFound("PUC checklist not updated");
 
     return Ok(checklist);
 }
@@ -979,7 +1002,7 @@ public async Task<IActionResult> GetCarWashChecklist(Guid enquiryId)
         .FirstOrDefaultAsync(c => c.ServiceEnquiryId == enquiryId);
 
     if (checklist == null)
-        return NotFound("Car Wash checklist not found for this enquiry");
+        return NotFound("Car Wash checklist not updated");
 
     return Ok(checklist);
 }

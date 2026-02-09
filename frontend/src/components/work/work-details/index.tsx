@@ -193,12 +193,12 @@ const VehicleServiceAndChecklist = () => {
       // Optional: refetch or navigate away
     } catch (err: any) {
       console.log(err, "err");
-      if (err?.incompleteChecklists?.length) {
+      if (err?.data?.missingChecklists?.length) {
         toast.error(
-          `${err?.message}\n\nMissing/Incomplete:\n- ${err.incompleteChecklists.join("\n- ")}`,
+          `${err?.data?.message}\n\nMissing/Incomplete:\n- ${err?.data?.missingChecklists.join("\n- ")}`,
         );
       } else {
-        toast.error(err?.message || "Failed to approve enquiry");
+        toast.error(err?.data || "Failed to approve enquiry");
       }
     }
   };

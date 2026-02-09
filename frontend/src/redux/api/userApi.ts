@@ -125,6 +125,8 @@ export const {
   useUpdateUserDesignationsMutation,
   useLazyGetUsersQuery,
   useLazyGetUserByIdQuery,
+  useGetMyEnquiriesSummaryQuery,
+  useGetMyProfileQuery,
 } = usersApi;
 
 export default usersApi.reducer;
