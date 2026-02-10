@@ -7,7 +7,7 @@ namespace backend.Extensions
     {
         public static IQueryable<ServiceEnquiry> ApplyFilter(
             this IQueryable<ServiceEnquiry> query,
-            ServiceEnquiryFilterDto filter)
+            ServiceEnquiryFilterDto filter,List<Guid>? designationServiceIds = null)
         {
             // 1. Keyword search
             if (!string.IsNullOrWhiteSpace(filter.Keyword))
@@ -23,7 +23,7 @@ namespace backend.Extensions
             }
 
             // 2. Created date range (robust)
-            if (filter.CreatedFrom.HasValue)
+if (filter.CreatedFrom.HasValue)
     {
         // Start of the "from" day (00:00:00)
         var start = filter.CreatedFrom.Value.Date;
@@ -58,12 +58,12 @@ namespace backend.Extensions
                 query = query.Where(e => e.Odometer <= filter.MaxOdometer.Value);
 
             // 5. Services
-            if (filter.ServiceIds is { Count: > 0 })
-            {
-                query = query.Where(e =>
-                    e.SelectedServices.Any(ss =>
-                        filter.ServiceIds.Contains(ss.ServiceId)));
-            }
+              if (designationServiceIds != null && designationServiceIds.Any())
+    {
+        query = query.Where(e => e.SelectedServices.Any(ss => designationServiceIds.Contains(ss.ServiceId)));
+    }
+
+
 
             // 6. Status
             if (!string.IsNullOrWhiteSpace(filter.Status))

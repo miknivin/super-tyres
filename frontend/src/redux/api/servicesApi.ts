@@ -271,9 +271,33 @@ export type BatteryInspectionResponse = BatteryInspectionSummary | null;
 export type TyreRotationInspectionResponse =
   TyreRotationInspectionSummary | null;
 export type OilInspectionResponse = OilInspectionSummary | null;
-// ────────────────────────────────────────────────
-// API Definition
-// ────────────────────────────────────────────────
+
+export interface MyServiceEnquiryResponse {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  vehicleNo: string;
+  vehicleName: string;
+  status: string;
+  createdAt: string;
+  serviceDate?: string;
+  odometer?: number;
+  services: ServiceWithNameDto[];
+}
+
+export interface ServiceWithNameDto {
+  serviceId: string;
+  serviceName: string;
+  serviceCode: string;
+}
+export interface PagedServiceEnquiryResponse {
+  items: MyServiceEnquiryResponse[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export const servicesApi = createApi({
   reducerPath: "servicesApi",
   baseQuery: fetchBaseQuery({
@@ -464,9 +488,27 @@ export const servicesApi = createApi({
       ],
     }),
 
-    getMyEnquiries: builder.query<any[], void>({
-      query: () => "/service-enquiry/my-enquiries",
-      providesTags: ["ServiceEnquiry"],
+    getMyEnquiries: builder.query<
+      PagedServiceEnquiryResponse,
+      ServiceEnquiryFilter
+    >({
+      query: (filter) => {
+        // Convert filter object to query string
+        const params = new URLSearchParams();
+        Object.entries(filter).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            if (Array.isArray(value)) {
+              value.forEach((v) => params.append(key, v));
+            } else {
+              params.append(key, value.toString());
+            }
+          }
+        });
+        return {
+          url: `/service-enquiry/my-enquiries?${params.toString()}`,
+          method: "GET",
+        };
+      },
     }),
   }),
 });

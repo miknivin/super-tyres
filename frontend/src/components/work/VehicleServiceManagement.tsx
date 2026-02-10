@@ -9,7 +9,7 @@ import OngoingVehicleCard from "./OngoingVehicleCard";
 import CompletedVehicleCard from "./CompletedVehicleCard";
 
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import ServiceFilter from "./ServiceFilter";
+import ServiceFilter from "../ui/ServiceFilter";
 
 // ────────────────────────────────────────────────
 // Types (extended to match your filter + response)
@@ -171,7 +171,7 @@ const VehicleServiceManagement = () => {
   // ────────────────────────────────────────────────
   if (isLoading && page === 1) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className=" bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
       </div>
     );
@@ -180,7 +180,7 @@ const VehicleServiceManagement = () => {
   if (isError) {
     const msg = (error as any)?.data?.message || "Failed to load enquiries";
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className=" flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-2" />
           <p className="text-gray-600">{msg}</p>
@@ -196,19 +196,18 @@ const VehicleServiceManagement = () => {
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header + Add button */}
-        <div className="bg-teal-600 text-white px-5 py-5 flex justify-between items-center rounded-lg shadow-sm">
-          <span className="text-lg font-semibold">
-            Vehicle Service Management
-          </span>
-          <Link to="/work/add" className="hover:opacity-90 transition">
+        <div className="bg-linear-to-r from-teal-800 to-teal-600 text-white px-5 py-5 flex justify-between items-center rounded-lg shadow-sm">
+          <span className="text-lg font-semibold">Add New Vehicle</span>
+          <Link
+            to="/work/add"
+            className="hover:opacity-90 transition bg-teal-200/50 p-2 rounded-full"
+          >
             <Plus className="w-8 h-8" />
           </Link>
         </div>
 
-        {/* Filter Form (new) */}
         <ServiceFilter />
 
-        {/* Tabs */}
         <div className="flex gap-8 border-b">
           <button
             onClick={() => setActiveTab("ongoing")}

@@ -1173,13 +1173,12 @@ var enquiry = await _context.ServiceEnquiries
 
 [HttpGet("my-enquiries")]
 [Authorize]
-public async Task<IActionResult> GetMyEnquiriesByDesignations()
+public async Task<IActionResult> GetMyEnquiriesByDesignations([FromQuery] ServiceEnquiryFilterDto filter)
 {
+    // 1️⃣ Get current user
     if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) ||
         userIdObj is not Guid userId)
-    {
         return Unauthorized(new { message = "User not authenticated" });
-    }
 
     var user = await _context.Users
         .AsNoTracking()
@@ -1187,21 +1186,17 @@ public async Task<IActionResult> GetMyEnquiriesByDesignations()
         .FirstOrDefaultAsync(u => u.Id == userId);
 
     if (user == null)
-    {
         return NotFound(new { message = "User not found" });
-    }
 
     var userDesignationIds = user.UserDesignations
         .Select(ud => ud.DesignationId)
         .Distinct()
         .ToList();
 
-    if (userDesignationIds.Count == 0)
-    {
+    if (!userDesignationIds.Any())
         return Ok(new List<object>());
-    }
 
-    // ── FIXED PART ────────────────────────────────────────────────
+    // 2️⃣ Get services linked to user's designations (Guid)
     var designationServiceIds = await _context.Designations
         .Where(d => userDesignationIds.Contains(d.Id))
         .Select(d => d.ServiceId)
@@ -1209,18 +1204,29 @@ public async Task<IActionResult> GetMyEnquiriesByDesignations()
         .Select(id => id.Value)
         .Distinct()
         .ToListAsync();
-    // ──────────────────────────────────────────────────────────────
 
-    if (designationServiceIds.Count == 0)
-    {
+    if (!designationServiceIds.Any())
         return Ok(new List<object>());
-    }
 
-    var enquiries = await _context.ServiceEnquiries
+    // 3️⃣ Default filter values
+    filter ??= new ServiceEnquiryFilterDto();
+    filter.Status ??= ServiceEnquiryStatus.Pending.ToString();
+    filter.Page = filter.Page <= 0 ? 1 : filter.Page;
+    filter.PageSize = filter.PageSize <= 0 ? 50 : filter.PageSize;
+
+    // 4️⃣ Apply filters first, then include navigation
+    var query = _context.ServiceEnquiries
+        .AsNoTracking()
+        .ApplyFilter(filter, designationServiceIds)
         .Include(e => e.SelectedServices)
-            .ThenInclude(ss => ss.Service)
-            .Where(e => e.Status == ServiceEnquiryStatus.Pending)
-        .Where(e => e.SelectedServices.Any(ss => designationServiceIds.Contains(ss.ServiceId)))
+            .ThenInclude(ss => ss.Service);
+
+    // 5️⃣ Pagination
+    int totalCount = await query.CountAsync();
+    var pagedEnquiries = await query
+        .OrderByDescending(e => e.CreatedAt)
+        .Skip((filter.Page - 1) * filter.PageSize)
+        .Take(filter.PageSize)
         .Select(e => new
         {
             e.Id,
@@ -1228,21 +1234,28 @@ public async Task<IActionResult> GetMyEnquiriesByDesignations()
             e.CustomerPhone,
             e.VehicleNo,
             e.VehicleName,
-            e.Status,
+            Status = e.Status.ToString(),
             e.CreatedAt,
             e.ServiceDate,
             e.Odometer,
             Services = e.SelectedServices.Select(ss => new
             {
-                ServiceId   = ss.ServiceId,
-                ServiceName = ss.Service.Name,
-                ServiceCode = ss.Service.Code
+                ServiceId = ss.ServiceId,
+                ServiceName = ss.Service != null ? ss.Service.Name : "Unknown",
+                ServiceCode = ss.Service != null ? ss.Service.Code : "Unknown"
             }).ToList()
         })
-        .OrderByDescending(e => e.CreatedAt)
         .ToListAsync();
 
-    return Ok(enquiries);
+    // 6️⃣ Return paged result
+    return Ok(new
+    {
+        Items = pagedEnquiries,
+        TotalCount = totalCount,
+        Page = filter.Page,
+        PageSize = filter.PageSize,
+        TotalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize)
+    });
 }
 
 }
